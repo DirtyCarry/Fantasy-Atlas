@@ -195,7 +195,7 @@ function App() {
         return (
           <>
             <LocationList worldName={currentWorld.name} locations={locations} selectedLocation={selectedLocation} onSelect={handleLocationSelect} />
-            <div className="flex-1 relative h-full">
+            <div className="flex-1 relative h-full min-h-0 min-w-0">
               <MapArea mapUrl={currentWorld.map_url} locations={locations} selectedLocation={selectedLocation} onMarkerClick={handleLocationSelect} onMarkerDragEnd={handleMarkerDragEnd} onMapClick={handleAddLocation} isEditable={!isPlayerMode} />
               <Sidebar location={selectedLocation} isOpen={detailsOpen} onClose={() => setDetailsOpen(false)} isEditable={!isPlayerMode} onSave={handleSaveLocation} onDelete={handleDeleteLocation} />
               {!isPlayerMode && (
@@ -277,7 +277,10 @@ function App() {
         </nav>
       )}
 
-      <div className="flex-1 h-full overflow-hidden relative">
+      <div className={clsx(
+        "flex-1 h-full overflow-hidden relative",
+        viewMode === 'map' && "flex flex-col md:flex-row"
+      )}>
         {renderView()}
       </div>
 

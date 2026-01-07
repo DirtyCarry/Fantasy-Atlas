@@ -46,18 +46,17 @@ const createFantasyIcon = (isSelected: boolean, size: number = 25) => {
 
 /**
  * Robust component to handle map resizing.
- * Listens to container size changes (like sidebar toggles) and window resizes.
+ * Listens to container size changes and uses a 'heartbeat' invalidation pattern
+ * to ensure the map renders correctly even in complex flex layouts.
  */
 const MapResizer = () => {
   const map = useMap();
   
   useEffect(() => {
-    // 1. Initial fix: Leaflet often needs a nudge once the initial React render cycle finishes
-    const timer = setTimeout(() => {
-      map.invalidateSize();
-    }, 100);
+    // Sequence of invalidations to catch browser layout settling
+    const intervals = [50, 200, 500, 1000, 2000];
+    const timers = intervals.map(ms => setTimeout(() => map.invalidateSize(), ms));
 
-    // 2. Continuous fix: ResizeObserver catches sidebar collapses and dynamic layout shifts
     const observer = new ResizeObserver(() => {
       map.invalidateSize();
     });
@@ -68,7 +67,7 @@ const MapResizer = () => {
     }
 
     return () => {
-      clearTimeout(timer);
+      timers.forEach(clearTimeout);
       observer.disconnect();
     };
   }, [map]);
@@ -120,7 +119,7 @@ const MapArea: React.FC<MapAreaProps> = ({
   const activeUrl = mapUrl || DEFAULT_MAP;
 
   return (
-    <div className="h-full w-full bg-slate-950 z-0 relative">
+    <div className="absolute inset-0 bg-slate-950 z-0">
       <MapContainer
         key={activeUrl}
         crs={L.CRS.Simple}
@@ -130,7 +129,7 @@ const MapArea: React.FC<MapAreaProps> = ({
         maxZoom={3}
         scrollWheelZoom={true}
         className="h-full w-full outline-none"
-        style={{ background: '#020617' }}
+        style={{ background: '#020617', height: '100%', width: '100%' }}
       >
         <ImageOverlay key={activeUrl} url={activeUrl} bounds={BOUNDS} />
         <MapResizer />

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { MapContainer, ImageOverlay, Marker, useMapEvents, useMap, Tooltip } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -44,11 +44,42 @@ const createFantasyIcon = (isSelected: boolean, size: number = 25) => {
   });
 };
 
+/**
+ * Robust component to handle map resizing.
+ * Listens to container size changes (like sidebar toggles) and window resizes.
+ */
+const MapResizer = () => {
+  const map = useMap();
+  
+  useEffect(() => {
+    // 1. Initial fix: Leaflet often needs a nudge once the initial React render cycle finishes
+    const timer = setTimeout(() => {
+      map.invalidateSize();
+    }, 100);
+
+    // 2. Continuous fix: ResizeObserver catches sidebar collapses and dynamic layout shifts
+    const observer = new ResizeObserver(() => {
+      map.invalidateSize();
+    });
+
+    const container = map.getContainer();
+    if (container) {
+      observer.observe(container);
+    }
+
+    return () => {
+      clearTimeout(timer);
+      observer.disconnect();
+    };
+  }, [map]);
+
+  return null;
+};
+
 const MapClickHandler: React.FC<{ onClick: (lat: number, lng: number) => void, isEditable: boolean }> = ({ onClick, isEditable }) => {
   useMapEvents({
     click(e) {
       if (isEditable) {
-        // Delay slightly to prevent click-through conflicts
         setTimeout(() => {
           onClick(e.latlng.lat, e.latlng.lng);
         }, 100);
@@ -86,7 +117,6 @@ const MapArea: React.FC<MapAreaProps> = ({
   isEditable,
   mapUrl
 }) => {
-  // Use mapUrl as part of the key to force re-render when the image source changes
   const activeUrl = mapUrl || DEFAULT_MAP;
 
   return (
@@ -103,6 +133,7 @@ const MapArea: React.FC<MapAreaProps> = ({
         style={{ background: '#020617' }}
       >
         <ImageOverlay key={activeUrl} url={activeUrl} bounds={BOUNDS} />
+        <MapResizer />
         <BoundsFitter mapUrl={activeUrl} />
         <MapController selectedLocation={selectedLocation} />
         <MapClickHandler onClick={onMapClick} isEditable={isEditable} />

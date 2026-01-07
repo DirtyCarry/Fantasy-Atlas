@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { LocationData } from '../types';
-import { X, Save, Plus, Trash2, MapPin, Move, AlertTriangle } from 'lucide-react';
+import { X, Save, Plus, Trash2, MapPin, Move, AlertTriangle, Maximize } from 'lucide-react';
 import clsx from 'clsx';
 
 const safeArray = (arr: any): string[] => {
@@ -35,7 +35,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         taverns: safeArray(location.taverns),
         shops: safeArray(location.shops),
         npcs: safeArray(location.npcs),
-        size: location.size || 25
+        size: location.size || 32
       });
     }
     setIsDeleteModalOpen(false);
@@ -166,6 +166,31 @@ const Sidebar: React.FC<SidebarProps> = ({
                 <p className="text-slate-300 text-xs leading-relaxed whitespace-pre-wrap">{editData.description}</p>
               )}
             </div>
+
+            {isEditable && (
+              <div className="mb-6 p-4 bg-slate-950/50 rounded-lg border border-amber-900/10">
+                <div className="flex items-center justify-between mb-3">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                    <Maximize size={12} className="text-amber-600" />
+                    Sigil Magnitude
+                  </label>
+                  <span className="text-xs font-mono text-amber-500 font-bold">{editData.size || 32}pt</span>
+                </div>
+                <input 
+                  type="range" 
+                  min="16" 
+                  max="64" 
+                  step="2"
+                  value={editData.size || 32}
+                  onChange={(e) => setEditData({ ...editData, size: parseInt(e.target.value) })}
+                  className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-600"
+                />
+                <div className="flex justify-between mt-1 text-[8px] text-slate-600 uppercase font-bold tracking-tighter">
+                  <span>Outpost</span>
+                  <span>Metropolis</span>
+                </div>
+              </div>
+            )}
 
             <div className="h-px bg-slate-800 my-4 md:my-6" />
 

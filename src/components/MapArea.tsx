@@ -169,7 +169,7 @@ const MapArea: React.FC<MapAreaProps> = ({
               key={`${loc.id}-${isSelected}`} 
               position={[loc.y, loc.x]}
               draggable={isEditable}
-              icon={createFantasyIcon(isSelected, 32)}
+              icon={createFantasyIcon(isSelected, loc.size || 32)}
               zIndexOffset={isSelected ? 1000 : 0}
               eventHandlers={{
                 click: () => onMarkerClick(loc),
@@ -180,7 +180,7 @@ const MapArea: React.FC<MapAreaProps> = ({
                 }
               }}
             >
-              <Tooltip direction="top" offset={[0, -45]} opacity={1}>
+              <Tooltip direction="top" offset={[0, -(loc.size || 32) * 1.4]} opacity={1}>
                 <div className="bg-slate-900 border border-amber-900/50 px-3 py-1.5 rounded shadow-[0_0_15px_rgba(0,0,0,0.5)]">
                   <span className="font-serif font-bold text-[11px] uppercase text-amber-100 tracking-[0.15em]">{loc.name}</span>
                 </div>

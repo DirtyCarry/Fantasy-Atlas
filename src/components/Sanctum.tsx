@@ -60,9 +60,21 @@ const Sanctum: React.FC<SanctumProps> = ({ session, onSelectWorld, activeWorld, 
     if (!error) setWorlds(worlds.filter(w => w.id !== id));
   };
 
-  // If not logged in, show Login. Use a local state to handle the onClose reset properly.
+  // If not logged in, show Login. 
+  // If user closes login, we return them to their active world if it exists.
   if (!session && showLogin) {
-    return <Login onClose={() => setShowLogin(true)} />;
+    return (
+      <Login 
+        onClose={() => {
+          if (activeWorld && onResumeWorld) {
+            onResumeWorld();
+          } else {
+            // Keep on login if no where else to go
+            setShowLogin(true);
+          }
+        }} 
+      />
+    );
   }
 
   return (

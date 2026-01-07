@@ -259,7 +259,8 @@ function App() {
 
   return (
     <div className="h-full w-full relative overflow-hidden flex flex-col md:flex-row bg-slate-950">
-      {viewMode !== 'sanctum' && (
+      {/* Sidebar now stays visible if there's an active world, allowing navigation out of Sanctum */}
+      {(viewMode !== 'sanctum' || currentWorld) && (
         <nav className="w-full md:w-[72px] bg-slate-950 border-b md:border-b-0 md:border-r border-amber-900/40 flex flex-row md:flex-col items-center py-2 md:py-6 z-[2000] shrink-0">
           <div className="flex flex-row md:flex-col items-center gap-1 md:gap-8 w-full px-2">
             {[
@@ -273,7 +274,7 @@ function App() {
                 <span className="text-[8px] font-serif uppercase tracking-widest mt-1">{tab.label}</span>
               </button>
             ))}
-            {!isPlayerMode && (
+            {!isPlayerMode && currentWorld && (
               <button onClick={() => setViewMode('settings')} className={clsx("flex-1 md:flex-none flex flex-col items-center w-full py-2 rounded-lg transition-all", viewMode === 'settings' ? "text-amber-500 bg-amber-600/10" : "text-slate-500 hover:text-amber-400")}>
                 <Settings size={22} />
                 <span className="text-[8px] font-serif uppercase tracking-widest mt-1">Forge</span>
@@ -285,9 +286,11 @@ function App() {
             </button>
           </div>
           <div className="mt-auto hidden md:block">
-            <button onClick={async () => { await supabase.auth.signOut(); window.location.reload(); }} className="text-red-900/60 hover:text-red-500 p-3">
-              <ShieldAlert size={20} />
-            </button>
+            {session && (
+              <button onClick={async () => { await supabase.auth.signOut(); window.location.reload(); }} className="text-red-900/60 hover:text-red-500 p-3">
+                <ShieldAlert size={20} />
+              </button>
+            )}
           </div>
         </nav>
       )}

@@ -113,6 +113,18 @@ function App() {
     }
   };
 
+  const handleMarkerDragEnd = async (id: string, lat: number, lng: number) => {
+    if (!currentWorld || isPlayerMode) return;
+    const { error } = await supabase.from('locations').update({ x: lng, y: lat }).eq('id', id);
+    if (error) alert(error.message);
+    else {
+      setLocations(prev => prev.map(l => l.id === id ? { ...l, x: lng, y: lat } : l));
+      if (selectedLocation?.id === id) {
+        setSelectedLocation({ ...selectedLocation, x: lng, y: lat });
+      }
+    }
+  };
+
   const handleAddLocation = async (lat: number, lng: number) => {
     if (!currentWorld || isPlayerMode) return;
     const name = prompt("Name this landmark:");
@@ -184,7 +196,7 @@ function App() {
           <>
             <LocationList worldName={currentWorld.name} locations={locations} selectedLocation={selectedLocation} onSelect={handleLocationSelect} />
             <div className="flex-1 relative h-full">
-              <MapArea mapUrl={currentWorld.map_url} locations={locations} selectedLocation={selectedLocation} onMarkerClick={handleLocationSelect} onMarkerDragEnd={() => {}} onMapClick={handleAddLocation} isEditable={!isPlayerMode} />
+              <MapArea mapUrl={currentWorld.map_url} locations={locations} selectedLocation={selectedLocation} onMarkerClick={handleLocationSelect} onMarkerDragEnd={handleMarkerDragEnd} onMapClick={handleAddLocation} isEditable={!isPlayerMode} />
               <Sidebar location={selectedLocation} isOpen={detailsOpen} onClose={() => setDetailsOpen(false)} isEditable={!isPlayerMode} onSave={handleSaveLocation} onDelete={handleDeleteLocation} />
               {!isPlayerMode && (
                 <button onClick={copyShareLink} className="absolute top-4 right-4 z-[999] bg-amber-600/90 hover:bg-amber-500 text-white p-2 rounded-full shadow-lg transition-all">

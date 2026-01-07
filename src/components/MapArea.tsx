@@ -7,6 +7,7 @@ import { LocationData } from '../types';
 const MAP_WIDTH = 2000;
 const MAP_HEIGHT = 1500;
 const BOUNDS: L.LatLngBoundsExpression = [[0, 0], [MAP_HEIGHT, MAP_WIDTH]];
+const DEFAULT_MAP = 'https://media.wizards.com/2015/images/dnd/resources/Sword-Coast-Map_HighRes.jpg';
 
 interface MapAreaProps {
   locations: LocationData[];
@@ -47,6 +48,7 @@ const MapClickHandler: React.FC<{ onClick: (lat: number, lng: number) => void, i
   useMapEvents({
     click(e) {
       if (isEditable) {
+        // Delay slightly to prevent click-through conflicts
         setTimeout(() => {
           onClick(e.latlng.lat, e.latlng.lng);
         }, 100);
@@ -66,9 +68,12 @@ const MapController: React.FC<{ selectedLocation: LocationData | null }> = ({ se
   return null;
 }
 
-const BoundsFitter = () => {
+const BoundsFitter = ({ mapUrl }: { mapUrl: string }) => {
     const map = useMap();
-    useEffect(() => { map.fitBounds(BOUNDS); }, [map]);
+    useEffect(() => { 
+      map.invalidateSize();
+      map.fitBounds(BOUNDS); 
+    }, [map, mapUrl]);
     return null;
 }
 
@@ -81,9 +86,13 @@ const MapArea: React.FC<MapAreaProps> = ({
   isEditable,
   mapUrl
 }) => {
+  // Use mapUrl as part of the key to force re-render when the image source changes
+  const activeUrl = mapUrl || DEFAULT_MAP;
+
   return (
     <div className="h-full w-full bg-slate-950 z-0 relative">
       <MapContainer
+        key={activeUrl}
         crs={L.CRS.Simple}
         center={[MAP_HEIGHT / 2, MAP_WIDTH / 2]}
         zoom={0}
@@ -93,8 +102,8 @@ const MapArea: React.FC<MapAreaProps> = ({
         className="h-full w-full outline-none"
         style={{ background: '#020617' }}
       >
-        <ImageOverlay url={mapUrl} bounds={BOUNDS} />
-        <BoundsFitter />
+        <ImageOverlay key={activeUrl} url={activeUrl} bounds={BOUNDS} />
+        <BoundsFitter mapUrl={activeUrl} />
         <MapController selectedLocation={selectedLocation} />
         <MapClickHandler onClick={onMapClick} isEditable={isEditable} />
         {locations.map((loc) => {
@@ -124,6 +133,7 @@ const MapArea: React.FC<MapAreaProps> = ({
           );
         })}
       </MapContainer>
+      
       <div className="absolute bottom-4 left-4 z-[900] bg-slate-900/80 p-3 rounded border border-amber-900/50 text-slate-300 text-[10px] uppercase tracking-widest backdrop-blur-sm pointer-events-none font-serif">
          <p className="mb-1">Scroll to Zoom • Drag to Pan</p>
          {isEditable && <p className="text-amber-500 font-bold animate-pulse">Forge Access: Map Sigils Modifiable</p>}

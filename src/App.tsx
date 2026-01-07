@@ -38,11 +38,13 @@ function App() {
     // 1. Check for Session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
+      if (session) cleanUrl();
       initialize(session);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+      if (session) cleanUrl();
       if (_event === 'SIGNED_IN') initialize(session);
       if (_event === 'SIGNED_OUT') {
         setCurrentWorld(null);
@@ -52,6 +54,14 @@ function App() {
     
     return () => subscription.unsubscribe();
   }, []);
+
+  const cleanUrl = () => {
+    if (window.location.hash.includes('access_token')) {
+      const url = new URL(window.location.href);
+      url.hash = '';
+      window.history.replaceState({}, document.title, url.toString());
+    }
+  };
 
   const initialize = async (currentSession: any) => {
     const params = new URLSearchParams(window.location.search);
@@ -66,7 +76,6 @@ function App() {
         setViewMode('map');
         await fetchWorldData(data.id);
       } else {
-        // If world not found or private, go to sanctum/login
         setViewMode('sanctum');
       }
     } else {
@@ -94,7 +103,6 @@ function App() {
     setIsPlayerMode(session?.user?.id !== world.owner_id);
     setViewMode('map');
     
-    // Sync URL
     const newUrl = `${window.location.origin}${window.location.pathname}?w=${world.id}`;
     window.history.pushState({ path: newUrl }, '', newUrl);
     

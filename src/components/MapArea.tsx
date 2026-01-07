@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import { MapContainer, ImageOverlay, Marker, useMapEvents, useMap, Tooltip } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -47,15 +47,22 @@ const createFantasyIcon = (isSelected: boolean, size: number = 25) => {
 /**
  * Robust component to handle map resizing.
  * Listens to container size changes and uses a 'heartbeat' invalidation pattern
- * to ensure the map renders correctly even in complex flex layouts.
+ * to ensure the map renders correctly even in complex flex layouts or at specific zoom levels.
  */
 const MapResizer = () => {
   const map = useMap();
   
   useEffect(() => {
-    // Sequence of invalidations to catch browser layout settling
-    const intervals = [50, 200, 500, 1000, 2000];
-    const timers = intervals.map(ms => setTimeout(() => map.invalidateSize(), ms));
+    // Immediate nudge
+    map.invalidateSize();
+
+    // Sequence of invalidations to catch browser layout settling at 100% zoom
+    const intervals = [50, 200, 500, 1000, 2000, 3000, 5000];
+    const timers = intervals.map(ms => setTimeout(() => {
+      map.invalidateSize();
+      // On some zoom levels, fitBounds is also needed to reset the visual state
+      map.fitBounds(BOUNDS);
+    }, ms));
 
     const observer = new ResizeObserver(() => {
       map.invalidateSize();
@@ -129,7 +136,12 @@ const MapArea: React.FC<MapAreaProps> = ({
         maxZoom={3}
         scrollWheelZoom={true}
         className="h-full w-full outline-none"
-        style={{ background: '#020617', height: '100%', width: '100%' }}
+        style={{ 
+          background: '#020617', 
+          height: '100%', 
+          width: '100%',
+          minHeight: '100%' // Ensure it doesn't collapse at 100% zoom
+        }}
       >
         <ImageOverlay key={activeUrl} url={activeUrl} bounds={BOUNDS} />
         <MapResizer />

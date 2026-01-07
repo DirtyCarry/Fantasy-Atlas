@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { AppSettings, ViewMode } from '../types';
 import { Save, FileDown, Upload, RefreshCw, AlertCircle, Database, Map as MapIcon, Hammer } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-// Add missing clsx import
 import clsx from 'clsx';
 
 interface SettingsViewProps {
+  worldId: string;
   settings: AppSettings;
   onSave: (settings: AppSettings) => void;
   onRefresh: () => void;
@@ -18,7 +18,7 @@ const TEMPLATES = {
   rules: "name,category,description,details"
 };
 
-const SettingsView: React.FC<SettingsViewProps> = ({ settings, onSave, onRefresh }) => {
+const SettingsView: React.FC<SettingsViewProps> = ({ worldId, settings, onSave, onRefresh }) => {
   const [formData, setFormData] = useState<AppSettings>(settings);
   const [importStatus, setImportStatus] = useState<{ type: string, message: string, error?: boolean } | null>(null);
   const [loading, setLoading] = useState(false);
@@ -60,6 +60,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ settings, onSave, onRefresh
         if (type === 'locations') {
           const formatted = data.map(d => ({
             ...d,
+            world_id: worldId,
             x: parseFloat(d.x) || 1000,
             y: parseFloat(d.y) || 750,
             taverns: d.taverns ? d.taverns.split(';').map((s: string) => s.trim()) : [],
@@ -68,17 +69,23 @@ const SettingsView: React.FC<SettingsViewProps> = ({ settings, onSave, onRefresh
           }));
           ({ error } = await supabase.from('locations').insert(formatted));
         } else if (type === 'lore') {
-          const formatted = data.map(d => ({ ...d, year: parseInt(d.year) || 1490 }));
+          const formatted = data.map(d => ({ 
+            ...d, 
+            world_id: worldId,
+            year: parseInt(d.year) || 1490 
+          }));
           ({ error } = await supabase.from('lore_entries').insert(formatted));
         } else if (type === 'rules') {
           const formatted = data.map(d => ({
             ...d,
+            world_id: worldId,
             details: d.details ? d.details.split(';').map((s: string) => s.trim()) : []
           }));
           ({ error } = await supabase.from('rules').insert(formatted));
         } else if (type === 'monsters') {
           const formatted = data.map(d => ({
             ...d,
+            world_id: worldId,
             armor_class: parseInt(d.armor_class) || 10,
             hit_points: parseInt(d.hit_points) || 10,
             strength: parseInt(d.strength) || 10,

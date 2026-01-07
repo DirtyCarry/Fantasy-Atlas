@@ -210,10 +210,15 @@ function App() {
           setLocalMonsters(prev => prev.filter(m => m.id !== id));
         }} />;
       case 'settings':
-        return <SettingsView settings={{ worldName: currentWorld.name, mapUrl: currentWorld.map_url }} onSave={async (s) => {
-          const { error } = await supabase.from('worlds').update({ name: s.worldName, map_url: s.mapUrl }).eq('id', currentWorld.id);
-          if (!error) setCurrentWorld({ ...currentWorld, name: s.worldName, map_url: s.mapUrl });
-        }} onRefresh={() => fetchWorldData(currentWorld.id)} />;
+        return <SettingsView 
+          worldId={currentWorld.id}
+          settings={{ worldName: currentWorld.name, mapUrl: currentWorld.map_url }} 
+          onSave={async (s) => {
+            const { error } = await supabase.from('worlds').update({ name: s.worldName, map_url: s.mapUrl }).eq('id', currentWorld.id);
+            if (!error) setCurrentWorld({ ...currentWorld, name: s.worldName, map_url: s.mapUrl });
+          }} 
+          onRefresh={() => fetchWorldData(currentWorld.id)} 
+        />;
       default: return null;
     }
   };

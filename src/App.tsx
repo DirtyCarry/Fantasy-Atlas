@@ -195,7 +195,14 @@ function App() {
   };
 
   const renderView = () => {
-    if (viewMode === 'sanctum') return <Sanctum session={session} onSelectWorld={handleSelectWorld} />;
+    if (viewMode === 'sanctum') return (
+      <Sanctum 
+        session={session} 
+        onSelectWorld={handleSelectWorld} 
+        activeWorld={currentWorld} 
+        onResumeWorld={() => setViewMode('map')} 
+      />
+    );
     if (!currentWorld) return null;
 
     switch (viewMode) {
@@ -272,7 +279,7 @@ function App() {
                 <span className="text-[8px] font-serif uppercase tracking-widest mt-1">Forge</span>
               </button>
             )}
-            <button onClick={() => { setViewMode('sanctum'); window.history.pushState({}, '', window.location.pathname); }} className="flex-1 md:flex-none flex flex-col items-center w-full py-2 rounded-lg transition-all text-slate-500 hover:text-amber-400">
+            <button onClick={() => setViewMode('sanctum')} className={clsx("flex-1 md:flex-none flex flex-col items-center w-full py-2 rounded-lg transition-all", viewMode === 'sanctum' ? "text-amber-500 bg-amber-600/10" : "text-slate-500 hover:text-amber-400")}>
               <LayoutDashboard size={22} />
               <span className="text-[8px] font-serif uppercase tracking-widest mt-1">Sanctum</span>
             </button>

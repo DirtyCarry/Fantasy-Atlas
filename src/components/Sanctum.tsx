@@ -2,23 +2,31 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { World } from '../types';
 import Login from './Login';
-import { Plus, Globe, Lock, Unlock, ArrowRight, BookOpen, Trash2, Loader2, Sparkles } from 'lucide-react';
+import { Plus, Globe, Lock, Unlock, ArrowRight, BookOpen, Trash2, Loader2, Sparkles, MoveLeft } from 'lucide-react';
 import clsx from 'clsx';
 
 interface SanctumProps {
   session: any;
   onSelectWorld: (world: World) => void;
+  activeWorld?: World | null;
+  onResumeWorld?: () => void;
 }
 
-const Sanctum: React.FC<SanctumProps> = ({ session, onSelectWorld }) => {
+const Sanctum: React.FC<SanctumProps> = ({ session, onSelectWorld, activeWorld, onResumeWorld }) => {
   const [worlds, setWorlds] = useState<World[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
   const [newWorld, setNewWorld] = useState({ name: '', description: '', is_public: false });
 
   useEffect(() => {
-    if (session) fetchWorlds();
-    else setLoading(false);
+    if (session) {
+      fetchWorlds();
+      setShowLogin(false);
+    } else {
+      setLoading(false);
+      setShowLogin(true);
+    }
   }, [session]);
 
   const fetchWorlds = async () => {
@@ -52,12 +60,28 @@ const Sanctum: React.FC<SanctumProps> = ({ session, onSelectWorld }) => {
     if (!error) setWorlds(worlds.filter(w => w.id !== id));
   };
 
-  if (!session) return <Login onClose={() => {}} />;
+  // If not logged in, show Login. Use a local state to handle the onClose reset properly.
+  if (!session && showLogin) {
+    return <Login onClose={() => setShowLogin(true)} />;
+  }
 
   return (
     <div className="h-full w-full bg-slate-950 overflow-y-auto custom-scrollbar p-6 md:p-12 font-serif bg-[radial-gradient(circle_at_center,_rgba(217,119,6,0.05)_0%,_transparent_70%)]">
       <div className="max-w-6xl mx-auto">
         
+        {/* Navigation / Resume Bar */}
+        {activeWorld && (
+          <div className="mb-8 flex justify-start">
+            <button 
+              onClick={onResumeWorld}
+              className="flex items-center gap-2 text-amber-500/60 hover:text-amber-500 transition-all text-xs uppercase tracking-widest font-bold group"
+            >
+              <MoveLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+              Resume active world: <span className="text-amber-500 border-b border-amber-500/30 ml-1">{activeWorld.name}</span>
+            </button>
+          </div>
+        )}
+
         {/* Header Section */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-8 mb-16 border-b border-amber-900/30 pb-12">
           <div className="text-center md:text-left">
@@ -94,7 +118,10 @@ const Sanctum: React.FC<SanctumProps> = ({ session, onSelectWorld }) => {
               <div 
                 key={world.id}
                 onClick={() => onSelectWorld(world)}
-                className="group relative bg-slate-900/80 border border-amber-900/20 rounded-2xl overflow-hidden cursor-pointer hover:border-amber-500/50 hover:shadow-[0_0_40px_rgba(217,119,6,0.1)] transition-all flex flex-col h-[320px] backdrop-blur-md"
+                className={clsx(
+                  "group relative bg-slate-900/80 border rounded-2xl overflow-hidden cursor-pointer transition-all flex flex-col h-[320px] backdrop-blur-md",
+                  activeWorld?.id === world.id ? "border-amber-500 shadow-[0_0_40px_rgba(217,119,6,0.2)]" : "border-amber-900/20 hover:border-amber-500/50 hover:shadow-[0_0_40px_rgba(217,119,6,0.1)]"
+                )}
               >
                 {/* Map Preview */}
                 <div 
@@ -117,7 +144,7 @@ const Sanctum: React.FC<SanctumProps> = ({ session, onSelectWorld }) => {
 
                   <div className="flex items-center justify-between pt-6 border-t border-amber-900/10">
                     <div className="flex items-center gap-2 text-amber-600 uppercase text-[10px] font-bold tracking-[0.2em] group-hover:text-amber-400 transition-colors">
-                      <ArrowRight size={14} /> Manifest Realm
+                      <ArrowRight size={14} /> {activeWorld?.id === world.id ? 'Continue Exploration' : 'Manifest Realm'}
                     </div>
                     <button 
                       onClick={(e) => deleteWorld(world.id, e)}

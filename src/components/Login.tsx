@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { UserPlus, ShieldCheck, Mail, AlertCircle, RotateCcw } from 'lucide-react';
+import { UserPlus, ShieldCheck, Mail, AlertCircle, RotateCcw, X } from 'lucide-react';
 
 interface LoginProps {
   onClose: () => void;
@@ -64,6 +64,12 @@ const Login: React.FC<LoginProps> = ({ onClose }) => {
     setResending(false);
   };
 
+  const resetView = () => {
+    setIsSuccess(false);
+    setIsSignUp(false);
+    setError(null);
+  };
+
   if (isSuccess) {
     return (
       <div className="fixed inset-0 bg-black/95 z-[5000] flex items-center justify-center p-4">
@@ -93,10 +99,10 @@ const Login: React.FC<LoginProps> = ({ onClose }) => {
 
           <div className="flex flex-col gap-3">
             <button
-              onClick={onClose}
+              onClick={resetView}
               className="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 px-4 rounded-lg transition-all uppercase tracking-widest text-xs"
             >
-              Return to Sanctum
+              Return to Login
             </button>
             <button
               onClick={handleResend}
@@ -116,6 +122,14 @@ const Login: React.FC<LoginProps> = ({ onClose }) => {
     <div className="fixed inset-0 bg-black/95 z-[5000] flex items-center justify-center p-4">
       <div className="bg-slate-900 border border-amber-900/50 p-8 rounded-2xl shadow-2xl max-w-md w-full relative overflow-hidden">
         
+        {/* Close Button */}
+        <button 
+          onClick={onClose}
+          className="absolute top-4 right-4 text-slate-600 hover:text-amber-500 transition-colors p-2"
+        >
+          <X size={20} />
+        </button>
+
         <div className="absolute -top-24 -right-24 w-48 h-48 bg-amber-600/10 rounded-full blur-3xl animate-pulse" />
 
         <div className="flex flex-col items-center mb-10 text-center">

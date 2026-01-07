@@ -19,48 +19,62 @@ interface MapAreaProps {
   mapUrl: string;
 }
 
-const createFantasyIcon = (isSelected: boolean, size: number = 25) => {
-  const primaryColor = isSelected ? '#f59e0b' : '#0f172a';
-  const fillColor = isSelected ? '#ffffff' : '#f1f5f9';
+const createFantasyIcon = (isSelected: boolean, size: number = 32) => {
+  const primaryColor = isSelected ? '#fbbf24' : '#d97706'; // amber-400 vs amber-600
+  const secondaryColor = isSelected ? '#fef3c7' : '#92400e'; // amber-100 vs amber-800
+  const glowColor = isSelected ? 'rgba(251, 191, 36, 0.6)' : 'rgba(217, 119, 6, 0.2)';
   
   const svgHtml = `
-    <svg width="${size}" height="${size * 1.6}" viewBox="0 0 32 50" fill="none" xmlns="http://www.w3.org/2000/svg" style="transition: transform 0.2s ease-out; transform: ${isSelected ? 'scale(1.25)' : 'scale(1)'};">
+    <svg width="${size}" height="${size * 1.5}" viewBox="0 0 32 48" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 0 4px ${glowColor}); transition: all 0.3s ease;">
+      <!-- Outer Decorative Shield -->
+      <path d="M16 44 L4 32 C2 28 2 12 2 12 L16 4 L30 12 C30 12 30 28 28 32 L16 44Z" 
+            fill="#0f172a" 
+            stroke="${primaryColor}" 
+            stroke-width="2" />
+            
+      <!-- Inner Sigil Pattern -->
+      <path d="M16 8 L24 14 L24 28 L16 34 L8 28 L8 14 Z" 
+            fill="${secondaryColor}" 
+            fill-opacity="0.2"
+            stroke="${primaryColor}" 
+            stroke-width="1" 
+            stroke-dasharray="2 1" />
+            
+      <!-- Central Arcane Gem -->
+      <circle cx="16" cy="21" r="5" fill="${primaryColor}">
+        ${isSelected ? `<animate attributeName="r" values="4;6;4" dur="2s" repeatCount="indefinite" />` : ''}
+      </circle>
+      <circle cx="16" cy="21" r="2" fill="white" fill-opacity="0.5" />
+      
+      <!-- Selection Ring -->
       ${isSelected ? `
-        <circle cx="16" cy="42" r="2" stroke="${primaryColor}" stroke-width="2" opacity="0">
-          <animate attributeName="r" from="2" to="20" dur="0.4s" repeatCount="1" />
-          <animate attributeName="opacity" from="0.6" to="0" dur="0.4s" repeatCount="1" />
+        <circle cx="16" cy="21" r="12" stroke="${primaryColor}" stroke-width="1" opacity="0.5">
+          <animate attributeName="stroke-dasharray" from="0, 100" to="100, 0" dur="3s" repeatCount="indefinite" />
+          <animate attributeName="opacity" values="0.2;0.6;0.2" dur="2s" repeatCount="indefinite" />
         </circle>
       ` : ''}
-      <path d="M16 2 L30 32 L19 32 L19 40 L16 48 L13 40 L13 32 L2 32 Z" fill="${fillColor}" stroke="${primaryColor}" stroke-width="3" stroke-linejoin="round" />
-      <path d="M16 32 L20 38 L16 44 L12 38 Z" fill="${primaryColor}" />
     </svg>
   `;
 
   return L.divIcon({
     className: 'bg-transparent border-none outline-none flex items-center justify-center', 
     html: svgHtml,
-    iconSize: [size * 1.5, size * 2.5],
-    iconAnchor: [size * 0.75, size * 2.4],
+    iconSize: [size, size * 1.5],
+    iconAnchor: [size / 2, size * 1.4],
   });
 };
 
 /**
  * Robust component to handle map resizing.
- * Listens to container size changes and uses a 'heartbeat' invalidation pattern
- * to ensure the map renders correctly even in complex flex layouts or at specific zoom levels.
  */
 const MapResizer = () => {
   const map = useMap();
   
   useEffect(() => {
-    // Immediate nudge
     map.invalidateSize();
-
-    // Sequence of invalidations to catch browser layout settling at 100% zoom
-    const intervals = [50, 200, 500, 1000, 2000, 3000, 5000];
+    const intervals = [50, 200, 500, 1000, 2000];
     const timers = intervals.map(ms => setTimeout(() => {
       map.invalidateSize();
-      // On some zoom levels, fitBounds is also needed to reset the visual state
       map.fitBounds(BOUNDS);
     }, ms));
 
@@ -140,7 +154,7 @@ const MapArea: React.FC<MapAreaProps> = ({
           background: '#020617', 
           height: '100%', 
           width: '100%',
-          minHeight: '100%' // Ensure it doesn't collapse at 100% zoom
+          minHeight: '100%'
         }}
       >
         <ImageOverlay key={activeUrl} url={activeUrl} bounds={BOUNDS} />
@@ -155,7 +169,7 @@ const MapArea: React.FC<MapAreaProps> = ({
               key={`${loc.id}-${isSelected}`} 
               position={[loc.y, loc.x]}
               draggable={isEditable}
-              icon={createFantasyIcon(isSelected, 25)}
+              icon={createFantasyIcon(isSelected, 32)}
               zIndexOffset={isSelected ? 1000 : 0}
               eventHandlers={{
                 click: () => onMarkerClick(loc),
@@ -166,9 +180,9 @@ const MapArea: React.FC<MapAreaProps> = ({
                 }
               }}
             >
-              <Tooltip direction="top" offset={[0, -40]} opacity={1}>
-                <div className="bg-slate-900 border border-amber-900/50 px-2 py-1 rounded shadow-xl">
-                  <span className="font-serif font-bold text-[10px] uppercase text-amber-100 tracking-widest">{loc.name}</span>
+              <Tooltip direction="top" offset={[0, -45]} opacity={1}>
+                <div className="bg-slate-900 border border-amber-900/50 px-3 py-1.5 rounded shadow-[0_0_15px_rgba(0,0,0,0.5)]">
+                  <span className="font-serif font-bold text-[11px] uppercase text-amber-100 tracking-[0.15em]">{loc.name}</span>
                 </div>
               </Tooltip>
             </Marker>

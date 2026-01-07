@@ -1,0 +1,5 @@
+{
+  "name": "Fantasy Atlas",
+  "description": "An interactive, dark-fantasy D&D map application with admin editing capabilities and Supabase backend.",
+  "requestFramePermissions": []
+}

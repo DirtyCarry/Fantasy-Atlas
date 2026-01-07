@@ -1,0 +1,34 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Critical Height Fix */
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  overflow: hidden;
+  background-color: #020617; /* slate-950 */
+}
+
+/* Leaflet Customization */
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+  background-color: #020617;
+}
+
+/* Scrollbar styling for Sidebar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #1e293b; 
+}
+::-webkit-scrollbar-thumb {
+  background: #f59e0b; 
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #d97706; 
+}

@@ -1,5 +1,17 @@
+
+export interface World {
+  id: string;
+  owner_id: string;
+  name: string;
+  description: string;
+  map_url: string;
+  is_public: boolean;
+  created_at?: string;
+}
+
 export interface LocationData {
   id: string;
+  world_id: string;
   name: string;
   x: number;
   y: number;
@@ -10,20 +22,9 @@ export interface LocationData {
   size?: number;
 }
 
-export type DbLocation = {
-  id: string;
-  name: string;
-  x: number;
-  y: number;
-  description: string;
-  taverns: any; 
-  shops: any;
-  npcs: any;
-  size?: number;
-}
-
 export interface LoreEntry {
   id: string;
+  world_id: string;
   title: string;
   content: string;
   era: string;
@@ -32,10 +33,12 @@ export interface LoreEntry {
   created_at?: string;
 }
 
-export type ViewMode = 'map' | 'lore' | 'rules' | 'monsters' | 'settings';
+export type ViewMode = 'map' | 'lore' | 'rules' | 'monsters' | 'settings' | 'sanctum';
 
+// Fix: Changed world_id to optional to support system-wide rules and static templates like those in rulesData.ts
 export interface RuleEntry {
   id: string;
+  world_id?: string;
   category: string;
   name: string;
   description: string;
@@ -45,6 +48,7 @@ export interface RuleEntry {
 
 export interface Monster {
   id?: string;
+  world_id: string;
   slug: string;
   name: string;
   size: string;

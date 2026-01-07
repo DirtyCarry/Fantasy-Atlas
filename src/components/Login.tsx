@@ -72,7 +72,7 @@ const Login: React.FC<LoginProps> = ({ onClose }) => {
 
   if (isSuccess) {
     return (
-      <div className="fixed inset-0 bg-black/95 z-[5000] flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/95 z-50 flex items-center justify-center p-4">
         <div className="bg-slate-900 border border-amber-900/50 p-8 rounded-2xl shadow-2xl max-w-md w-full text-center">
           <div className="w-16 h-16 bg-green-900/20 rounded-full flex items-center justify-center text-green-500 mb-6 mx-auto border border-green-600/30 animate-pulse">
             <Mail size={32} />
@@ -119,13 +119,14 @@ const Login: React.FC<LoginProps> = ({ onClose }) => {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/95 z-[5000] flex items-center justify-center p-4">
+    <div className="absolute inset-0 bg-black/95 z-50 flex items-center justify-center p-4">
       <div className="bg-slate-900 border border-amber-900/50 p-8 rounded-2xl shadow-2xl max-w-md w-full relative overflow-hidden">
         
         {/* Close Button */}
         <button 
           onClick={onClose}
           className="absolute top-4 right-4 text-slate-600 hover:text-amber-500 transition-colors p-2"
+          aria-label="Close login prompt"
         >
           <X size={20} />
         </button>

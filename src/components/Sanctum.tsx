@@ -25,7 +25,7 @@ const Sanctum: React.FC<SanctumProps> = ({ session, onSelectWorld, activeWorld, 
       setShowLogin(false);
     } else {
       setLoading(false);
-      // Auto-show login if no session, but don't force it if they dismiss
+      // Auto-show login if no session
       setShowLogin(true);
     }
   }, [session]);
@@ -63,13 +63,13 @@ const Sanctum: React.FC<SanctumProps> = ({ session, onSelectWorld, activeWorld, 
 
   const handleCloseLogin = () => {
     setShowLogin(false);
-    // If they were already viewing a world and clicked Sanctum by accident, take them back
+    // If they were already viewing a world and clicked Sanctum by accident, take them back immediately
     if (activeWorld && onResumeWorld) {
       onResumeWorld();
     }
   };
 
-  // If we should show the login modal/view
+  // If we should show the login modal/view and user is not logged in
   if (showLogin && !session) {
     return <Login onClose={handleCloseLogin} />;
   }
@@ -78,7 +78,7 @@ const Sanctum: React.FC<SanctumProps> = ({ session, onSelectWorld, activeWorld, 
     <div className="h-full w-full bg-slate-950 overflow-y-auto custom-scrollbar p-6 md:p-12 font-serif bg-[radial-gradient(circle_at_center,_rgba(217,119,6,0.05)_0%,_transparent_70%)]">
       <div className="max-w-6xl mx-auto">
         
-        {/* Guest View: If not logged in and chose to hide login */}
+        {/* Guest View: If not logged in and chose to hide login prompt */}
         {!session ? (
           <div className="min-h-[70vh] flex flex-col items-center justify-center text-center space-y-8 animate-in fade-in zoom-in duration-700">
             <div className="w-24 h-24 bg-amber-600/10 rounded-full flex items-center justify-center text-amber-500 border border-amber-500/20 mb-4">
@@ -87,7 +87,7 @@ const Sanctum: React.FC<SanctumProps> = ({ session, onSelectWorld, activeWorld, 
             <div>
               <h1 className="text-5xl md:text-7xl font-bold text-amber-500 uppercase tracking-tighter">The Outer Sanctum</h1>
               <p className="text-slate-400 max-w-lg mx-auto mt-4 font-sans leading-relaxed">
-                You have reached the threshold of the Grand Architect's chambers. Access is restricted to those who hold the keys to creation.
+                You have reached the threshold of the Grand Architect's chambers. Creation and management are restricted to authorized Manifestors.
               </p>
             </div>
             

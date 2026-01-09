@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { RuleEntry } from '../types';
-import { X, Save, Scale, Plus, Trash2 } from 'lucide-react';
+import { X, Save, Scale, Plus, Trash2, Eye, EyeOff } from 'lucide-react';
+import clsx from 'clsx';
 
 interface RulesEditorProps {
   rule: Partial<RuleEntry> | null;
@@ -13,7 +14,8 @@ const RulesEditor: React.FC<RulesEditorProps> = ({ rule, onSave, onClose }) => {
     name: '',
     category: 'Conditions',
     description: '',
-    details: []
+    details: [],
+    is_public: true
   });
   const [loading, setLoading] = useState(false);
 
@@ -112,6 +114,26 @@ const RulesEditor: React.FC<RulesEditorProps> = ({ rule, onSave, onClose }) => {
                 </div>
               ))}
             </div>
+          </div>
+
+          <div className="flex items-center justify-between p-4 bg-slate-950/50 rounded-lg border border-amber-900/10">
+            <div className="flex items-center gap-3">
+              {formData.is_public ? <Eye className="text-amber-500" size={20} /> : <EyeOff className="text-slate-600" size={20} />}
+              <div>
+                <p className="text-xs font-bold text-amber-100 uppercase tracking-widest leading-none mb-1">Codex Visibility</p>
+                <p className="text-[10px] text-slate-500 uppercase leading-none">{formData.is_public ? 'Players can access this law' : 'DM restricted rule'}</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setFormData({ ...formData, is_public: !formData.is_public })}
+              className={clsx(
+                "px-4 py-2 rounded-md text-[10px] font-bold uppercase tracking-widest transition-all border",
+                formData.is_public ? "bg-amber-600/20 border-amber-500 text-amber-500" : "bg-slate-800 border-slate-700 text-slate-500"
+              )}
+            >
+              {formData.is_public ? 'Hide' : 'Reveal'}
+            </button>
           </div>
 
           <button

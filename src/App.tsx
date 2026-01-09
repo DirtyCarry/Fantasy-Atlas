@@ -1,19 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from './lib/supabase';
-import { LocationData, LoreEntry, ViewMode, RuleEntry, Monster, World } from './types';
+import { LocationData, LoreEntry, ViewMode, RuleEntry, Monster, World, DMNote } from './types';
 import MapArea from './components/MapArea';
 import Sidebar from './components/Sidebar';
 import LocationList from './components/LocationList';
-import Login from './components/Login';
 import LoreView from './components/LoreView';
 import LoreEditor from './components/LoreEditor';
 import RulesView from './components/RulesView';
 import RulesEditor from './components/RulesEditor';
 import MonstersView from './components/MonstersView';
 import MonsterEditor from './components/MonsterEditor';
+import DMNotesView from './components/DMNotesView';
+import DMNoteEditor from './components/DMNoteEditor';
 import SettingsView from './components/SettingsView';
 import Sanctum from './components/Sanctum';
-import { ShieldAlert, Compass, Scroll, Scale, Skull, Settings, LayoutDashboard, Share2, Loader2 } from 'lucide-react';
+import { ShieldAlert, Compass, Scroll, Scale, Skull, Settings, LayoutDashboard, Share2, Loader2, BookMarked, EyeOff, Eye } from 'lucide-react';
 import clsx from 'clsx';
 
 function App() {
@@ -33,9 +34,10 @@ function App() {
   const [editingRule, setEditingRule] = useState<Partial<RuleEntry> | null>(null);
   const [localMonsters, setLocalMonsters] = useState<Monster[]>([]);
   const [editingMonster, setEditingMonster] = useState<Partial<Monster> | null>(null);
+  const [dmNotes, setDmNotes] = useState<DMNote[]>([]);
+  const [editingNote, setEditingNote] = useState<Partial<DMNote> | null>(null);
 
   useEffect(() => {
-    // 1. Check for Session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session) cleanUrl();
@@ -72,9 +74,10 @@ function App() {
       const { data, error } = await supabase.from('worlds').select('*').eq('id', worldId).single();
       if (!error && data) {
         setCurrentWorld(data);
-        setIsPlayerMode(currentSession?.user?.id !== data.owner_id);
+        const playerMode = currentSession?.user?.id !== data.owner_id;
+        setIsPlayerMode(playerMode);
         setViewMode('map');
-        await fetchWorldData(data.id);
+        await fetchWorldData(data.id, playerMode);
       } else {
         setViewMode('sanctum');
       }
@@ -84,30 +87,36 @@ function App() {
     setLoading(false);
   };
 
-  const fetchWorldData = async (worldId: string) => {
+  const fetchWorldData = async (worldId: string, playerMode: boolean) => {
     const results = await Promise.all([
       supabase.from('locations').select('*').eq('world_id', worldId),
       supabase.from('lore_entries').select('*').eq('world_id', worldId),
       supabase.from('rules').select('*').eq('world_id', worldId),
-      supabase.from('homebrew_monsters').select('*').eq('world_id', worldId)
+      supabase.from('homebrew_monsters').select('*').eq('world_id', worldId),
+      supabase.from('dm_notes').select('*').eq('world_id', worldId)
     ]);
 
-    if (results[0].data) setLocations(results[0].data);
-    if (results[1].data) setLoreEntries(results[1].data);
-    if (results[2].data) setRules(results[2].data);
-    if (results[3].data) setLocalMonsters(results[3].data);
+    const filterPublic = <T extends { is_public?: boolean }>(data: T[] | null) => 
+      playerMode ? (data || []).filter(item => item.is_public) : (data || []);
+
+    setLocations(filterPublic(results[0].data));
+    setLoreEntries(filterPublic(results[1].data));
+    setRules(filterPublic(results[2].data));
+    setLocalMonsters(filterPublic(results[3].data));
+    setDmNotes(filterPublic(results[4].data));
   };
 
   const handleSelectWorld = async (world: World) => {
+    const playerMode = session?.user?.id !== world.owner_id;
     setCurrentWorld(world);
-    setIsPlayerMode(session?.user?.id !== world.owner_id);
+    setIsPlayerMode(playerMode);
     setViewMode('map');
     
     const newUrl = `${window.location.origin}${window.location.pathname}?w=${world.id}`;
     window.history.pushState({ path: newUrl }, '', newUrl);
     
     setLoading(true);
-    await fetchWorldData(world.id);
+    await fetchWorldData(world.id, playerMode);
     setLoading(false);
   };
 
@@ -146,7 +155,8 @@ function App() {
       taverns: [],
       shops: [],
       npcs: [],
-      size: 25
+      size: 32,
+      is_public: false
     };
     const { data, error } = await supabase.from('locations').insert([newLoc]).select().single();
     if (error) alert(error.message);
@@ -181,9 +191,22 @@ function App() {
     
     if (error) alert(error.message);
     else {
-      const { data } = await supabase.from('lore_entries').select('*').eq('world_id', currentWorld.id);
-      if (data) setLoreEntries(data);
+      await fetchWorldData(currentWorld.id, isPlayerMode);
       setEditingLore(null);
+    }
+  };
+
+  const handleSaveNote = async (note: Partial<DMNote>) => {
+    if (!currentWorld || isPlayerMode) return;
+    const payload = { ...note, world_id: currentWorld.id };
+    const { error } = note.id 
+      ? await supabase.from('dm_notes').update(payload).eq('id', note.id)
+      : await supabase.from('dm_notes').insert([payload]);
+    
+    if (error) alert(error.message);
+    else {
+      await fetchWorldData(currentWorld.id, isPlayerMode);
+      setEditingNote(null);
     }
   };
 
@@ -222,17 +245,22 @@ function App() {
           </>
         );
       case 'lore':
-        return <LoreView entries={loreEntries} isEditable={!isPlayerMode} onEdit={setEditingLore} onAdd={() => setEditingLore({ title: '', content: '', era: '', year: 1490, category: 'History' })} onDelete={async (id) => {
+        return <LoreView entries={loreEntries} isEditable={!isPlayerMode} onEdit={setEditingLore} onAdd={() => setEditingLore({ title: '', content: '', era: '', year: 1490, category: 'History', is_public: false })} onDelete={async (id) => {
           await supabase.from('lore_entries').delete().eq('id', id);
           setLoreEntries(prev => prev.filter(e => e.id !== id));
         }} />;
+      case 'notes':
+        return <DMNotesView notes={dmNotes} isEditable={!isPlayerMode} onEdit={setEditingNote} onAdd={() => setEditingNote({ title: '', content: '', category: 'Secret', is_public: false })} onDelete={async (id) => {
+          await supabase.from('dm_notes').delete().eq('id', id);
+          setDmNotes(prev => prev.filter(n => n.id !== id));
+        }} />;
       case 'rules':
-        return <RulesView rules={rules} isEditable={!isPlayerMode} onEdit={setEditingRule} onAdd={() => setEditingRule({ name: '', category: 'Combat', description: '', details: [] })} onDelete={async (id) => {
+        return <RulesView rules={rules} isEditable={!isPlayerMode} onEdit={setEditingRule} onAdd={() => setEditingRule({ name: '', category: 'Combat', description: '', details: [], is_public: true })} onDelete={async (id) => {
           await supabase.from('rules').delete().eq('id', id);
           setRules(prev => prev.filter(r => r.id !== id));
         }} />;
       case 'monsters':
-        return <MonstersView localMonsters={localMonsters} isEditable={!isPlayerMode} onEdit={setEditingMonster} onAdd={() => setEditingMonster({ name: '', is_homebrew: true, strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10, armor_class: 10, hit_points: 10 })} onDelete={async (id) => {
+        return <MonstersView localMonsters={localMonsters} isEditable={!isPlayerMode} onEdit={setEditingMonster} onAdd={() => setEditingMonster({ name: '', is_homebrew: true, strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10, armor_class: 10, hit_points: 10, is_public: false })} onDelete={async (id) => {
           await supabase.from('homebrew_monsters').delete().eq('id', id);
           setLocalMonsters(prev => prev.filter(m => m.id !== id));
         }} />;
@@ -244,7 +272,7 @@ function App() {
             const { error } = await supabase.from('worlds').update({ name: s.worldName, map_url: s.mapUrl }).eq('id', currentWorld.id);
             if (!error) setCurrentWorld({ ...currentWorld, name: s.worldName, map_url: s.mapUrl });
           }} 
-          onRefresh={() => fetchWorldData(currentWorld.id)} 
+          onRefresh={() => fetchWorldData(currentWorld.id, isPlayerMode)} 
         />;
       default: return null;
     }
@@ -257,18 +285,23 @@ function App() {
     </div>
   );
 
+  const tabs = [
+    { id: 'map', icon: <Compass size={22}/>, label: 'World' },
+    { id: 'lore', icon: <Scroll size={22}/>, label: 'Lore' },
+    { id: 'rules', icon: <Scale size={22}/>, label: 'Codex' },
+    { id: 'monsters', icon: <Skull size={22}/>, label: 'Bestiary' },
+  ];
+
+  if (!isPlayerMode && currentWorld) {
+    tabs.push({ id: 'notes', icon: <BookMarked size={22}/>, label: 'Notes' });
+  }
+
   return (
     <div className="h-full w-full relative overflow-hidden flex flex-col md:flex-row bg-slate-950">
-      {/* Sidebar now stays visible if there's an active world, allowing navigation out of Sanctum */}
       {(viewMode !== 'sanctum' || currentWorld) && (
         <nav className="w-full md:w-[72px] bg-slate-950 border-b md:border-b-0 md:border-r border-amber-900/40 flex flex-row md:flex-col items-center py-2 md:py-6 z-[2000] shrink-0">
           <div className="flex flex-row md:flex-col items-center gap-1 md:gap-8 w-full px-2">
-            {[
-              { id: 'map', icon: <Compass size={22}/>, label: 'World' },
-              { id: 'lore', icon: <Scroll size={22}/>, label: 'Lore' },
-              { id: 'rules', icon: <Scale size={22}/>, label: 'Codex' },
-              { id: 'monsters', icon: <Skull size={22}/>, label: 'Bestiary' },
-            ].map(tab => (
+            {tabs.map(tab => (
               <button key={tab.id} onClick={() => setViewMode(tab.id as ViewMode)} className={clsx("flex-1 md:flex-none flex flex-col items-center w-full py-2 rounded-lg transition-all", viewMode === tab.id ? "text-amber-500 bg-amber-600/10" : "text-slate-500 hover:text-amber-400")}>
                 {tab.icon}
                 <span className="text-[8px] font-serif uppercase tracking-widest mt-1">{tab.label}</span>
@@ -303,15 +336,16 @@ function App() {
       </div>
 
       {editingLore && <LoreEditor entry={editingLore} onSave={handleSaveLore} onClose={() => setEditingLore(null)} />}
+      {editingNote && <DMNoteEditor note={editingNote} onSave={handleSaveNote} onClose={() => setEditingNote(null)} />}
       {editingRule && <RulesEditor rule={editingRule} onSave={async (r) => {
         const payload = { ...r, world_id: currentWorld!.id };
         const { error } = r.id ? await supabase.from('rules').update(payload).eq('id', r.id) : await supabase.from('rules').insert([payload]);
-        if (!error) { fetchWorldData(currentWorld!.id); setEditingRule(null); }
+        if (!error) { fetchWorldData(currentWorld!.id, isPlayerMode); setEditingRule(null); }
       }} onClose={() => setEditingRule(null)} />}
       {editingMonster && <MonsterEditor monster={editingMonster} onSave={async (m) => {
         const payload = { ...m, world_id: currentWorld!.id };
         const { error } = m.id ? await supabase.from('homebrew_monsters').update(payload).eq('id', m.id) : await supabase.from('homebrew_monsters').insert([payload]);
-        if (!error) { fetchWorldData(currentWorld!.id); setEditingMonster(null); }
+        if (!error) { fetchWorldData(currentWorld!.id, isPlayerMode); setEditingMonster(null); }
       }} onClose={() => setEditingMonster(null)} />}
     </div>
   );

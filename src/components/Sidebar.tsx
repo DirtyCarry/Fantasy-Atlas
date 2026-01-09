@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { LocationData } from '../types';
-import { X, Save, Plus, Trash2, MapPin, Move, AlertTriangle, Maximize } from 'lucide-react';
+import { X, Save, Plus, Trash2, MapPin, Move, AlertTriangle, Maximize, Eye, EyeOff } from 'lucide-react';
 import clsx from 'clsx';
 
 const safeArray = (arr: any): string[] => {
@@ -35,7 +35,8 @@ const Sidebar: React.FC<SidebarProps> = ({
         taverns: safeArray(location.taverns),
         shops: safeArray(location.shops),
         npcs: safeArray(location.npcs),
-        size: location.size || 32
+        size: location.size || 32,
+        is_public: location.is_public ?? false
       });
     }
     setIsDeleteModalOpen(false);
@@ -131,23 +132,24 @@ const Sidebar: React.FC<SidebarProps> = ({
 
       <div className={clsx(
         "fixed top-0 right-0 h-full bg-slate-900 border-l border-amber-900/50 shadow-2xl transform transition-transform duration-300 z-[2000] overflow-y-auto custom-scrollbar",
-        // Full width on mobile, w-96 on desktop
         "w-full md:w-96",
         isOpen ? "translate-x-0" : "translate-x-full"
       )}>
         {editData ? (
           <div className="p-4 md:p-6">
             <div className="flex justify-between items-start mb-4 md:mb-6">
-              {isEditable ? (
-                <input
-                  type="text"
-                  value={editData.name}
-                  onChange={(e) => setEditData({ ...editData, name: e.target.value })}
-                  className="bg-transparent border-b border-amber-500/50 text-xl md:text-2xl font-serif font-bold text-amber-500 w-full focus:outline-none"
-                />
-              ) : (
-                <h2 className="text-xl md:text-2xl font-serif font-bold text-amber-500">{editData.name}</h2>
-              )}
+              <div className="flex-1">
+                {isEditable ? (
+                  <input
+                    type="text"
+                    value={editData.name}
+                    onChange={(e) => setEditData({ ...editData, name: e.target.value })}
+                    className="bg-transparent border-b border-amber-500/50 text-xl md:text-2xl font-serif font-bold text-amber-500 w-full focus:outline-none"
+                  />
+                ) : (
+                  <h2 className="text-xl md:text-2xl font-serif font-bold text-amber-500">{editData.name}</h2>
+                )}
+              </div>
               <button onClick={onClose} className="text-slate-500 hover:text-slate-300 ml-4 p-1">
                 <X size={24} />
               </button>
@@ -168,26 +170,43 @@ const Sidebar: React.FC<SidebarProps> = ({
             </div>
 
             {isEditable && (
-              <div className="mb-6 p-4 bg-slate-950/50 rounded-lg border border-amber-900/10">
-                <div className="flex items-center justify-between mb-3">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                    <Maximize size={12} className="text-amber-600" />
-                    Sigil Magnitude
-                  </label>
-                  <span className="text-xs font-mono text-amber-500 font-bold">{editData.size || 32}pt</span>
+              <div className="space-y-4 mb-6">
+                <div className="p-4 bg-slate-950/50 rounded-lg border border-amber-900/10">
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                      <Maximize size={12} className="text-amber-600" />
+                      Sigil Magnitude
+                    </label>
+                    <span className="text-xs font-mono text-amber-500 font-bold">{editData.size || 32}pt</span>
+                  </div>
+                  <input 
+                    type="range" 
+                    min="16" 
+                    max="64" 
+                    step="2"
+                    value={editData.size || 32}
+                    onChange={(e) => setEditData({ ...editData, size: parseInt(e.target.value) })}
+                    className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-600"
+                  />
                 </div>
-                <input 
-                  type="range" 
-                  min="16" 
-                  max="64" 
-                  step="2"
-                  value={editData.size || 32}
-                  onChange={(e) => setEditData({ ...editData, size: parseInt(e.target.value) })}
-                  className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-600"
-                />
-                <div className="flex justify-between mt-1 text-[8px] text-slate-600 uppercase font-bold tracking-tighter">
-                  <span>Outpost</span>
-                  <span>Metropolis</span>
+
+                <div className="p-4 bg-slate-950/50 rounded-lg border border-amber-900/10 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    {editData.is_public ? <Eye className="text-amber-500" size={16} /> : <EyeOff className="text-slate-600" size={16} />}
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-bold text-amber-100 uppercase leading-none mb-1">Visibility</span>
+                      <span className="text-[9px] text-slate-500 uppercase tracking-tighter">{editData.is_public ? 'Revealed to Players' : 'Cloaked Sigil'}</span>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => setEditData({ ...editData, is_public: !editData.is_public })}
+                    className={clsx(
+                      "px-3 py-1.5 rounded text-[9px] font-bold uppercase tracking-widest transition-all border",
+                      editData.is_public ? "bg-amber-600/20 border-amber-500 text-amber-500" : "bg-slate-800 border-slate-700 text-slate-500"
+                    )}
+                  >
+                    {editData.is_public ? 'Hide' : 'Reveal'}
+                  </button>
                 </div>
               </div>
             )}

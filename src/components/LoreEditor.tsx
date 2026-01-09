@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { LoreEntry } from '../types';
-import { X, Save, BookOpen } from 'lucide-react';
+import { X, Save, BookOpen, Eye, EyeOff } from 'lucide-react';
+import clsx from 'clsx';
 
 interface LoreEditorProps {
   entry: Partial<LoreEntry> | null;
@@ -14,7 +15,8 @@ const LoreEditor: React.FC<LoreEditorProps> = ({ entry, onSave, onClose }) => {
     content: '',
     era: '',
     year: 1490,
-    category: 'History'
+    category: 'History',
+    is_public: false
   });
   const [loading, setLoading] = useState(false);
 
@@ -97,16 +99,36 @@ const LoreEditor: React.FC<LoreEditorProps> = ({ entry, onSave, onClose }) => {
             <textarea
               value={formData.content}
               onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-              rows={10}
+              rows={8}
               className="w-full bg-slate-950 border border-slate-700 text-slate-200 rounded p-3 text-sm focus:border-amber-500 focus:outline-none custom-scrollbar"
               required
             />
           </div>
 
+          <div className="flex items-center justify-between p-4 bg-slate-950/50 rounded-lg border border-amber-900/10">
+            <div className="flex items-center gap-3">
+              {formData.is_public ? <Eye className="text-amber-500" size={20} /> : <EyeOff className="text-slate-600" size={20} />}
+              <div>
+                <p className="text-xs font-bold text-amber-100 uppercase tracking-widest leading-none mb-1">Public Reveal</p>
+                <p className="text-[10px] text-slate-500 uppercase leading-none">{formData.is_public ? 'Players can read this chronicle' : 'Hidden in the DM archives'}</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setFormData({ ...formData, is_public: !formData.is_public })}
+              className={clsx(
+                "px-4 py-2 rounded-md text-[10px] font-bold uppercase tracking-widest transition-all border",
+                formData.is_public ? "bg-amber-600/20 border-amber-500 text-amber-500" : "bg-slate-800 border-slate-700 text-slate-500"
+              )}
+            >
+              {formData.is_public ? 'Conceal' : 'Reveal'}
+            </button>
+          </div>
+
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition-all mt-4"
+            className="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition-all mt-2"
           >
             <Save size={20} />
             {loading ? 'Committing to Records...' : 'Save Chronicle'}

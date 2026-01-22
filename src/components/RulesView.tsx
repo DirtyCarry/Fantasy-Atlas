@@ -1,7 +1,9 @@
+
 import React, { useState, useMemo } from 'react';
-import { Search, Shield, Zap, Wind, Book, Scale, X, Edit3, Trash2, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { Search, Shield, Zap, Wind, Book, Scale, X, Edit3, Trash2, PanelLeftClose, PanelLeftOpen, Download } from 'lucide-react';
 import clsx from 'clsx';
 import { RuleEntry } from '../types';
+import RulesImporter from './RulesImporter';
 
 const categoryIcons = {
   'Conditions': <Wind size={14} />,
@@ -16,13 +18,15 @@ interface RulesViewProps {
   onEdit: (rule: RuleEntry) => void;
   onAdd: () => void;
   onDelete: (id: string) => void;
+  onImport: (rules: Partial<RuleEntry>[]) => Promise<void>;
 }
 
-const RulesView: React.FC<RulesViewProps> = ({ rules, isEditable, onEdit, onAdd, onDelete }) => {
+const RulesView: React.FC<RulesViewProps> = ({ rules, isEditable, onEdit, onAdd, onDelete, onImport }) => {
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedRule, setSelectedRule] = useState<RuleEntry | null>(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [showImporter, setShowImporter] = useState(false);
 
   const filteredRules = useMemo(() => {
     return rules.filter(r => {
@@ -82,6 +86,7 @@ const RulesView: React.FC<RulesViewProps> = ({ rules, isEditable, onEdit, onAdd,
                 type="text"
                 placeholder="Search the statutes..."
                 value={search}
+                // FIXED: Changed setSearchTerm to setSearch to match state definition
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full bg-slate-950 border border-slate-700 text-slate-200 rounded-md py-1.5 pl-8 pr-3 text-xs focus:border-amber-500 focus:outline-none transition-all placeholder:text-slate-600 font-sans"
               />
@@ -114,7 +119,10 @@ const RulesView: React.FC<RulesViewProps> = ({ rules, isEditable, onEdit, onAdd,
           </div>
 
           {isEditable && (
-            <div className="p-3 bg-slate-950/50 border-t border-amber-900/20 shrink-0">
+            <div className="p-3 bg-slate-950/50 border-t border-amber-900/20 shrink-0 space-y-2">
+              <button onClick={() => setShowImporter(true)} className="w-full bg-slate-800 text-amber-500 border border-amber-900/30 py-2 rounded text-[10px] font-bold uppercase tracking-widest hover:bg-slate-700 transition-all flex items-center justify-center gap-2">
+                <Download size={12} /> Import Arcane Codex
+              </button>
               <button onClick={onAdd} className="w-full bg-amber-900/20 text-amber-500 border border-amber-900/50 py-2 rounded text-[10px] font-bold uppercase tracking-widest hover:bg-amber-900/40 transition-all">
                 Amend Statutes
               </button>
@@ -162,10 +170,11 @@ const RulesView: React.FC<RulesViewProps> = ({ rules, isEditable, onEdit, onAdd,
                 <X size={24} />
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-[url('https://www.transparenttextures.com/patterns/natural-paper.png')] bg-fixed">
-              <p className="text-slate-200 text-lg leading-relaxed mb-6 italic font-serif">{selectedRule.description}</p>
+            <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-slate-950 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')] bg-fixed relative">
+              <div className="absolute inset-0 bg-gradient-to-b from-amber-900/5 via-transparent to-transparent pointer-events-none" />
+              <p className="text-slate-200 text-lg leading-relaxed mb-6 italic font-serif relative z-10">{selectedRule.description}</p>
               {selectedRule.details && selectedRule.details.length > 0 && (
-                <ul className="space-y-4">
+                <ul className="space-y-4 relative z-10">
                   {selectedRule.details.map((detail, idx) => (
                     <li key={idx} className="flex gap-4 items-start">
                       <div className="mt-2 w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
@@ -177,6 +186,16 @@ const RulesView: React.FC<RulesViewProps> = ({ rules, isEditable, onEdit, onAdd,
             </div>
           </div>
         </div>
+      )}
+
+      {showImporter && (
+        <RulesImporter 
+          onClose={() => setShowImporter(false)} 
+          onImport={async (newRules) => {
+            await onImport(newRules);
+            setShowImporter(false);
+          }} 
+        />
       )}
     </div>
   );

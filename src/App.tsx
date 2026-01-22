@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { supabase } from './lib/supabase';
 import { LocationData, LoreEntry, ViewMode, RuleEntry, Monster, World, DMNote } from './types';
@@ -210,6 +211,14 @@ function App() {
     }
   };
 
+  const handleImportRules = async (newRules: Partial<RuleEntry>[]) => {
+    if (!currentWorld || isPlayerMode) return;
+    const payload = newRules.map(r => ({ ...r, world_id: currentWorld.id }));
+    const { error } = await supabase.from('rules').insert(payload);
+    if (error) alert("Knowledge Manifestation Error: " + error.message);
+    else fetchWorldData(currentWorld.id, isPlayerMode);
+  };
+
   const copyShareLink = () => {
     if (!currentWorld) return;
     const url = `${window.location.origin}${window.location.pathname}?w=${currentWorld.id}`;
@@ -255,10 +264,17 @@ function App() {
           setDmNotes(prev => prev.filter(n => n.id !== id));
         }} />;
       case 'rules':
-        return <RulesView rules={rules} isEditable={!isPlayerMode} onEdit={setEditingRule} onAdd={() => setEditingRule({ name: '', category: 'Combat', description: '', details: [], is_public: true })} onDelete={async (id) => {
-          await supabase.from('rules').delete().eq('id', id);
-          setRules(prev => prev.filter(r => r.id !== id));
-        }} />;
+        return <RulesView 
+          rules={rules} 
+          isEditable={!isPlayerMode} 
+          onEdit={setEditingRule} 
+          onAdd={() => setEditingRule({ name: '', category: 'Combat', description: '', details: [], is_public: true })} 
+          onDelete={async (id) => {
+            await supabase.from('rules').delete().eq('id', id);
+            setRules(prev => prev.filter(r => r.id !== id));
+          }}
+          onImport={handleImportRules}
+        />;
       case 'monsters':
         return <MonstersView localMonsters={localMonsters} isEditable={!isPlayerMode} onEdit={setEditingMonster} onAdd={() => setEditingMonster({ name: '', is_homebrew: true, strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10, armor_class: 10, hit_points: 10, is_public: false })} onDelete={async (id) => {
           await supabase.from('homebrew_monsters').delete().eq('id', id);

@@ -33,12 +33,22 @@ const RulesView: React.FC<RulesViewProps> = ({ rules, isEditable, onEdit, onAdd,
       const matchesSearch = r.name.toLowerCase().includes(search.toLowerCase()) || 
                            r.description.toLowerCase().includes(search.toLowerCase());
       const matchesCat = !selectedCategory || r.category === selectedCategory;
-      // Fixed: matchesEra was not defined, should be matchesCat
       return matchesSearch && matchesCat;
     });
   }, [rules, search, selectedCategory]);
 
   const categories = Array.from(new Set(rules.map(r => r.category))) as string[];
+
+  // Helper to ensure quotes are balanced and cleaned
+  const formatFlavorText = (text: string) => {
+    if (!text) return "";
+    let cleaned = text.trim();
+    // Remove wrapping quotes if they already exist, we will add our own consistently
+    if (cleaned.startsWith('"') && cleaned.endsWith('"')) {
+      cleaned = cleaned.substring(1, cleaned.length - 1);
+    }
+    return `"${cleaned}"`;
+  };
 
   return (
     <div className="h-full w-full bg-slate-950 flex flex-col md:flex-row overflow-hidden font-sans">
@@ -68,13 +78,6 @@ const RulesView: React.FC<RulesViewProps> = ({ rules, isEditable, onEdit, onAdd,
             {isCollapsed ? <PanelLeftOpen size={20} /> : <PanelLeftClose size={20} />}
           </button>
         </div>
-
-        {isCollapsed && (
-          <div className="mt-4 flex flex-col items-center gap-6 text-slate-600">
-            <Scale size={20} className="text-amber-500/50" />
-            <div className="h-px w-6 bg-slate-800" />
-          </div>
-        )}
 
         <div className={clsx(
           "flex-1 flex flex-col min-h-0 transition-opacity duration-200 overflow-hidden",
@@ -175,19 +178,32 @@ const RulesView: React.FC<RulesViewProps> = ({ rules, isEditable, onEdit, onAdd,
               <div className="absolute inset-0 bg-gradient-to-b from-amber-900/5 via-transparent to-transparent pointer-events-none" />
               
               <div className="max-w-prose mx-auto relative z-10">
-                <p className="text-slate-200 text-lg md:text-xl leading-relaxed mb-8 font-sans italic border-l-2 border-amber-900/30 pl-6">
-                  {selectedRule.description}
-                </p>
+                <div className="mb-10 relative">
+                  <span className="absolute -left-6 top-0 text-amber-900/30 font-serif text-6xl leading-none">"</span>
+                  <p className="text-slate-200 text-lg md:text-xl leading-relaxed italic font-sans border-l-2 border-amber-900/30 pl-6 py-1">
+                    {selectedRule.description.trim().replace(/^"|"$/g, '')}
+                  </p>
+                  <span className="absolute -right-6 bottom-0 text-amber-900/30 font-serif text-6xl leading-none">"</span>
+                </div>
                 
                 {selectedRule.details && selectedRule.details.length > 0 && (
-                  <ul className="space-y-6">
-                    {selectedRule.details.map((detail, idx) => (
-                      <li key={idx} className="flex gap-4 items-start group">
-                        <div className="mt-2.5 w-1.5 h-1.5 rounded-full bg-amber-600 shadow-[0_0_8px_rgba(217,119,6,0.6)] shrink-0 transition-transform group-hover:scale-125" />
-                        <p className="text-slate-300 leading-relaxed font-sans text-sm md:text-base">{detail}</p>
-                      </li>
-                    ))}
-                  </ul>
+                  <div className="space-y-8">
+                    <div className="flex items-center gap-4">
+                      <div className="h-px flex-1 bg-gradient-to-r from-transparent to-amber-900/20" />
+                      <span className="text-[10px] uppercase font-bold tracking-[0.3em] text-amber-600/60 shrink-0">Specific Mandates</span>
+                      <div className="h-px flex-1 bg-gradient-to-l from-transparent to-amber-900/20" />
+                    </div>
+                    <ul className="space-y-6">
+                      {selectedRule.details.map((detail, idx) => (
+                        <li key={idx} className="flex gap-4 items-start group">
+                          <div className="mt-2.5 w-1.5 h-1.5 rounded-full bg-amber-600 shadow-[0_0_8px_rgba(217,119,6,0.6)] shrink-0 transition-transform group-hover:scale-125" />
+                          <p className="text-slate-300 leading-relaxed font-sans text-sm md:text-base selection:bg-amber-900/40">
+                            {detail.trim()}
+                          </p>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 )}
               </div>
             </div>

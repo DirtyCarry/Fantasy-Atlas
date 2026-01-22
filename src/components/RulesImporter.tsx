@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect } from 'react';
-// FIXED: Added Zap to the import list from lucide-react
 import { X, Search, Download, Check, Loader2, Globe, Shield, Wind, Book, Scale, Zap } from 'lucide-react';
 import { RuleEntry } from '../types';
 import clsx from 'clsx';
@@ -10,17 +9,33 @@ interface RulesImporterProps {
   onImport: (rules: Partial<RuleEntry>[]) => Promise<void>;
 }
 
-const SYSTEMS = [
-  { id: 'dnd5e', name: 'D&D 5th Edition (SRD)', source: 'https://api.open5e.com/sections/' },
-  { id: 'a5e', name: 'Level Up Advanced 5E', source: 'https://api.open5e.com/sections/?document__slug=a5e' }
-];
-
 const categoryMapping: Record<string, string> = {
   'combat': 'Combat',
   'conditions': 'Conditions',
   'spellcasting': 'Spellcasting',
   'adventuring': 'Adventuring',
   'using-ability-scores': 'Adventuring'
+};
+
+/**
+ * Intelligent text cleaner for SRD data.
+ * Reconstructs sentences that were split by 'soft' line breaks in the source API.
+ */
+const cleanArcaneText = (text: string): string => {
+  if (!text) return "";
+  
+  // 1. Normalize line endings
+  let cleaned = text.replace(/\r\n/g, '\n');
+  
+  // 2. Identify 'soft' breaks: A newline that doesn't end a sentence and isn't a list item
+  // We look for a newline that is NOT preceded by punctuation (., !, ?, :, ;) 
+  // and NOT followed by a list marker (-, *, #, \d.)
+  cleaned = cleaned.replace(/([^.!?:;])\n(?![#\-\*\d\.])/g, '$1 ');
+  
+  // 3. Remove excessive whitespace
+  cleaned = cleaned.replace(/[ \t]+/g, ' ');
+  
+  return cleaned.trim();
 };
 
 const RulesImporter: React.FC<RulesImporterProps> = ({ onClose, onImport }) => {
@@ -37,11 +52,9 @@ const RulesImporter: React.FC<RulesImporterProps> = ({ onClose, onImport }) => {
   const fetchSections = async () => {
     setLoading(true);
     try {
-      // Using Open5e "Sections" which contain the core rulebook parts (Combat, Abilities, etc.)
       const response = await fetch('https://api.open5e.com/sections/?document__slug=wotc-srd');
       const data = await response.json();
       
-      // Filter for interesting rule-like sections
       const relevantSections = (data.results || []).filter((s: any) => 
         ['combat', 'conditions', 'spellcasting', 'adventuring', 'using-ability-scores'].includes(s.slug)
       );
@@ -67,29 +80,34 @@ const RulesImporter: React.FC<RulesImporterProps> = ({ onClose, onImport }) => {
 
     for (const section of sections) {
       if (selectedIds.has(section.slug)) {
-        // IMPROVED: Intelligent text splitting
-        const fullDesc = section.desc || "";
-        const paragraphs = fullDesc.split('\n\n').map((p: string) => p.trim()).filter((p: string) => p.length > 0);
+        const cleanedFullDesc = cleanArcaneText(section.desc || "");
+        
+        // Split by double newline for logical paragraphs
+        const paragraphs = cleanedFullDesc.split('\n\n')
+          .map(p => p.trim())
+          .filter(p => p.length > 0);
         
         if (section.slug === 'conditions') {
-          // Special handling for conditions - split by H3
+          // Conditions are usually lists of distinct entries.
+          // The API often uses H3 for these.
           const parts = section.desc.split('### ').slice(1);
           parts.forEach((p: string) => {
             const lines = p.split('\n');
             const name = lines[0].trim();
-            const content = lines.slice(1).join('\n').trim();
-            const contentParas = content.split('\n\n').map((cp: string) => cp.trim());
+            const content = cleanArcaneText(lines.slice(1).join('\n'));
+            const contentParas = content.split('\n\n').map(cp => cp.trim());
             
             rulesToImport.push({
               name,
               category: 'Conditions',
               description: contentParas[0] || "No description provided.",
-              details: contentParas.slice(1).filter(l => l.trim().length > 0),
+              details: contentParas.slice(1).filter(l => l.length > 0),
               is_public: true
             });
           });
         } else {
-          // Standard sections
+          // For general sections, the first paragraph is the summary.
+          // Everything else is a detailed point.
           rulesToImport.push({
             name: section.name,
             category: categoryMapping[section.slug] || 'Combat',

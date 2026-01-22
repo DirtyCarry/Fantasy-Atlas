@@ -67,9 +67,9 @@ const RulesImporter: React.FC<RulesImporterProps> = ({ onClose, onImport }) => {
 
     for (const section of sections) {
       if (selectedIds.has(section.slug)) {
-        // Open5e sections are large markdown blocks. We split them into "rules" by headers if possible, 
-        // or just import the whole section as a high-level rule.
-        // For SRD sections like "Conditions", it's better to treat individual conditions as rules.
+        // IMPROVED: Intelligent text splitting
+        const fullDesc = section.desc || "";
+        const paragraphs = fullDesc.split('\n\n').map((p: string) => p.trim()).filter((p: string) => p.length > 0);
         
         if (section.slug === 'conditions') {
           // Special handling for conditions - split by H3
@@ -78,20 +78,23 @@ const RulesImporter: React.FC<RulesImporterProps> = ({ onClose, onImport }) => {
             const lines = p.split('\n');
             const name = lines[0].trim();
             const content = lines.slice(1).join('\n').trim();
+            const contentParas = content.split('\n\n').map((cp: string) => cp.trim());
+            
             rulesToImport.push({
               name,
               category: 'Conditions',
-              description: content.split('\n')[0],
-              details: content.split('\n').slice(1).filter(l => l.trim().length > 0),
+              description: contentParas[0] || "No description provided.",
+              details: contentParas.slice(1).filter(l => l.trim().length > 0),
               is_public: true
             });
           });
         } else {
+          // Standard sections
           rulesToImport.push({
             name: section.name,
             category: categoryMapping[section.slug] || 'Combat',
-            description: section.desc.substring(0, 300) + '...',
-            details: [section.desc.substring(0, 2000)], // Simple truncation for now
+            description: paragraphs[0] || "No summary available.",
+            details: paragraphs.slice(1).filter(p => p.length > 0),
             is_public: true
           });
         }

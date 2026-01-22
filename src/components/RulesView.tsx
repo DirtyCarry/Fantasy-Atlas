@@ -33,6 +33,7 @@ const RulesView: React.FC<RulesViewProps> = ({ rules, isEditable, onEdit, onAdd,
       const matchesSearch = r.name.toLowerCase().includes(search.toLowerCase()) || 
                            r.description.toLowerCase().includes(search.toLowerCase());
       const matchesCat = !selectedCategory || r.category === selectedCategory;
+      // Fixed: matchesEra was not defined, should be matchesCat
       return matchesSearch && matchesCat;
     });
   }, [rules, search, selectedCategory]);
@@ -86,7 +87,6 @@ const RulesView: React.FC<RulesViewProps> = ({ rules, isEditable, onEdit, onAdd,
                 type="text"
                 placeholder="Search the statutes..."
                 value={search}
-                // FIXED: Changed setSearchTerm to setSearch to match state definition
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full bg-slate-950 border border-slate-700 text-slate-200 rounded-md py-1.5 pl-8 pr-3 text-xs focus:border-amber-500 focus:outline-none transition-all placeholder:text-slate-600 font-sans"
               />
@@ -158,31 +158,38 @@ const RulesView: React.FC<RulesViewProps> = ({ rules, isEditable, onEdit, onAdd,
       </main>
 
       {selectedRule && (
-        <div className="fixed inset-0 z-[5000] flex items-center justify-center p-4 md:p-12">
+        <div className="fixed inset-0 z-[5000] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/95 backdrop-blur-md" onClick={() => setSelectedRule(null)} />
-          <div className="relative bg-slate-900 border border-amber-900/50 rounded-xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl animate-in zoom-in-95">
-            <div className="p-6 border-b border-amber-900/20 flex justify-between items-center bg-slate-950/50">
-              <div>
-                <span className="text-xs uppercase text-amber-600 font-bold tracking-widest">{selectedRule.category}</span>
-                <h2 className="text-3xl font-serif font-bold text-amber-100 uppercase">{selectedRule.name}</h2>
+          <div className="relative bg-slate-900 border border-amber-900/50 rounded-2xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl animate-in zoom-in-95 duration-300 overflow-hidden">
+            <div className="p-6 md:p-8 border-b border-amber-900/20 flex justify-between items-center bg-slate-950/50 shrink-0">
+              <div className="min-w-0 pr-4">
+                <span className="text-xs uppercase text-amber-600 font-bold tracking-[0.2em] mb-1 block">{selectedRule.category} Statute</span>
+                <h2 className="text-3xl md:text-4xl font-serif font-bold text-amber-100 uppercase tracking-tighter truncate leading-none">{selectedRule.name}</h2>
               </div>
-              <button onClick={() => setSelectedRule(null)} className="text-slate-500 hover:text-amber-500 transition-colors p-2">
-                <X size={24} />
+              <button onClick={() => setSelectedRule(null)} className="text-slate-500 hover:text-amber-500 transition-colors p-2 shrink-0">
+                <X size={28} />
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-slate-950 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')] bg-fixed relative">
+            
+            <div className="flex-1 overflow-y-auto p-8 md:p-12 custom-scrollbar bg-slate-950 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')] bg-fixed relative">
               <div className="absolute inset-0 bg-gradient-to-b from-amber-900/5 via-transparent to-transparent pointer-events-none" />
-              <p className="text-slate-200 text-lg leading-relaxed mb-6 italic font-serif relative z-10">{selectedRule.description}</p>
-              {selectedRule.details && selectedRule.details.length > 0 && (
-                <ul className="space-y-4 relative z-10">
-                  {selectedRule.details.map((detail, idx) => (
-                    <li key={idx} className="flex gap-4 items-start">
-                      <div className="mt-2 w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
-                      <p className="text-slate-300 leading-relaxed font-sans text-sm">{detail}</p>
-                    </li>
-                  ))}
-                </ul>
-              )}
+              
+              <div className="max-w-prose mx-auto relative z-10">
+                <p className="text-slate-200 text-lg md:text-xl leading-relaxed mb-8 font-sans italic border-l-2 border-amber-900/30 pl-6">
+                  {selectedRule.description}
+                </p>
+                
+                {selectedRule.details && selectedRule.details.length > 0 && (
+                  <ul className="space-y-6">
+                    {selectedRule.details.map((detail, idx) => (
+                      <li key={idx} className="flex gap-4 items-start group">
+                        <div className="mt-2.5 w-1.5 h-1.5 rounded-full bg-amber-600 shadow-[0_0_8px_rgba(217,119,6,0.6)] shrink-0 transition-transform group-hover:scale-125" />
+                        <p className="text-slate-300 leading-relaxed font-sans text-sm md:text-base">{detail}</p>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             </div>
           </div>
         </div>

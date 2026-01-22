@@ -248,23 +248,25 @@ const LoreView: React.FC<LoreViewProps> = ({ entries, isEditable, onEdit, onAdd,
         <div className="fixed inset-0 z-[4000] flex items-center justify-center p-2 md:p-12 animate-in fade-in duration-300">
           <div className="absolute inset-0 bg-black/95 backdrop-blur-xl" onClick={() => setExpandedEntry(null)} />
           <div className="relative bg-slate-900 border border-amber-900/50 rounded-xl md:rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-500">
-            {/* Modal Image Header */}
+            {/* Modal Image Header - Changed to object-contain and added background */}
             {expandedEntry.image_url && (
-              <div className="h-64 md:h-80 w-full overflow-hidden shrink-0 relative">
-                <img src={expandedEntry.image_url} alt={expandedEntry.title} className="w-full h-full object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent" />
+              <div className="h-64 md:h-96 w-full overflow-hidden shrink-0 relative bg-black">
+                <img src={expandedEntry.image_url} alt={expandedEntry.title} className="w-full h-full object-contain" />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-transparent pointer-events-none" />
               </div>
             )}
 
             <div className="bg-slate-950 p-4 md:p-8 border-b border-amber-900/30 flex justify-between items-center shrink-0">
-              <div>
+              <div className="min-w-0 pr-4">
                 <span className="text-[10px] md:text-xs uppercase font-bold text-amber-600 mb-1 block">Chronicle of Era {expandedEntry.era} • DR {expandedEntry.year}</span>
-                <h2 className="text-2xl md:text-5xl font-bold text-amber-100 uppercase tracking-tighter truncate max-w-[80%] leading-none">{expandedEntry.title}</h2>
+                <h2 className="text-2xl md:text-5xl font-bold text-amber-100 uppercase tracking-tighter truncate leading-none">{expandedEntry.title}</h2>
               </div>
-              <button onClick={() => setExpandedEntry(null)} className="text-slate-600 hover:text-amber-500 p-2"><X size={32} /></button>
+              <button onClick={() => setExpandedEntry(null)} className="text-slate-600 hover:text-amber-500 p-2 shrink-0 transition-colors"><X size={32} /></button>
             </div>
-            <div className="flex-1 overflow-y-auto p-6 md:p-16 custom-scrollbar bg-[url('https://www.transparenttextures.com/patterns/natural-paper.png')] bg-fixed">
-              <p className="text-slate-200 text-lg md:text-2xl leading-relaxed font-serif whitespace-pre-wrap">{expandedEntry.content}</p>
+            {/* Content Area - Replaced natural-paper with a more consistent dark styled background */}
+            <div className="flex-1 overflow-y-auto p-6 md:p-16 custom-scrollbar bg-slate-950 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')] bg-fixed relative">
+              <div className="absolute inset-0 bg-gradient-to-b from-amber-900/5 via-transparent to-transparent pointer-events-none" />
+              <p className="text-slate-200 text-lg md:text-2xl leading-relaxed font-serif whitespace-pre-wrap relative z-10">{expandedEntry.content}</p>
             </div>
           </div>
         </div>

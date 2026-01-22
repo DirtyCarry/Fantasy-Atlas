@@ -145,26 +145,28 @@ const DMNotesView: React.FC<DMNotesViewProps> = ({ notes, isEditable, onEdit, on
         <div className="fixed inset-0 z-[5000] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/95 backdrop-blur-xl" onClick={() => setExpandedNote(null)} />
           <div className="relative bg-slate-900 border border-amber-900/50 rounded-2xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl animate-in zoom-in-95 duration-300 overflow-hidden">
-            {/* Expanded Note Image */}
+            {/* Expanded Note Image - Fixed cropping with object-contain and added background */}
             {expandedNote.image_url && (
-              <div className="h-56 md:h-72 w-full overflow-hidden shrink-0 relative">
-                <img src={expandedNote.image_url} alt={expandedNote.title} className="w-full h-full object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent" />
+              <div className="h-56 md:h-80 w-full overflow-hidden shrink-0 relative bg-black">
+                <img src={expandedNote.image_url} alt={expandedNote.title} className="w-full h-full object-contain" />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-transparent pointer-events-none" />
               </div>
             )}
 
             <div className="p-6 md:p-8 bg-slate-950 border-b border-amber-900/20 flex justify-between items-start shrink-0">
-              <div>
+              <div className="min-w-0 pr-4">
                 <div className="flex items-center gap-2 text-amber-600 mb-1">
                   {categoryIcons[expandedNote.category]}
                   <span className="text-[10px] font-bold uppercase tracking-widest">{expandedNote.category} Record</span>
                 </div>
-                <h2 className="text-3xl font-bold text-amber-100 uppercase tracking-tighter leading-tight">{expandedNote.title}</h2>
+                <h2 className="text-3xl font-bold text-amber-100 uppercase tracking-tighter leading-tight truncate">{expandedNote.title}</h2>
               </div>
-              <button onClick={() => setExpandedNote(null)} className="text-slate-500 hover:text-amber-500 p-2"><X size={28} /></button>
+              <button onClick={() => setExpandedNote(null)} className="text-slate-500 hover:text-amber-500 p-2 shrink-0 transition-colors"><X size={28} /></button>
             </div>
-            <div className="flex-1 overflow-y-auto p-8 md:p-12 custom-scrollbar bg-[url('https://www.transparenttextures.com/patterns/natural-paper.png')]">
-              <p className="text-slate-200 text-lg md:text-xl leading-relaxed whitespace-pre-wrap font-serif italic">{expandedNote.content}</p>
+            {/* Content Area - Replaced natural-paper with dark-matter and consistent dark slate styling */}
+            <div className="flex-1 overflow-y-auto p-8 md:p-12 custom-scrollbar bg-slate-950 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')] bg-fixed relative">
+              <div className="absolute inset-0 bg-gradient-to-b from-amber-900/5 via-transparent to-transparent pointer-events-none" />
+              <p className="text-slate-200 text-lg md:text-xl leading-relaxed whitespace-pre-wrap font-serif italic relative z-10">{expandedNote.content}</p>
             </div>
           </div>
         </div>

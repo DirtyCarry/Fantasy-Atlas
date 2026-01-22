@@ -290,11 +290,8 @@ function App() {
     { id: 'lore', icon: <Scroll size={22}/>, label: 'Lore' },
     { id: 'rules', icon: <Scale size={22}/>, label: 'Codex' },
     { id: 'monsters', icon: <Skull size={22}/>, label: 'Bestiary' },
+    { id: 'notes', icon: <BookMarked size={22}/>, label: 'Campaign' },
   ];
-
-  if (!isPlayerMode && currentWorld) {
-    tabs.push({ id: 'notes', icon: <BookMarked size={22}/>, label: 'Notes' });
-  }
 
   return (
     <div className="h-full w-full relative overflow-hidden flex flex-col md:flex-row bg-slate-950">

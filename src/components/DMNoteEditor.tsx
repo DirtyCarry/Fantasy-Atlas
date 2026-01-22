@@ -1,7 +1,7 @@
+
 import React, { useState } from 'react';
 import { DMNote } from '../types';
-import { X, Save, BookMarked, Eye, EyeOff } from 'lucide-react';
-// Added missing import for clsx
+import { X, Save, BookMarked, Eye, EyeOff, Link as LinkIcon } from 'lucide-react';
 import clsx from 'clsx';
 
 interface DMNoteEditorProps {
@@ -15,7 +15,8 @@ const DMNoteEditor: React.FC<DMNoteEditorProps> = ({ note, onSave, onClose }) =>
     title: '',
     content: '',
     category: 'Secret',
-    is_public: false
+    is_public: false,
+    image_url: ''
   });
   const [loading, setLoading] = useState(false);
 
@@ -33,7 +34,7 @@ const DMNoteEditor: React.FC<DMNoteEditorProps> = ({ note, onSave, onClose }) =>
           <div className="flex items-center gap-3 text-amber-500">
             <BookMarked size={24} />
             <h2 className="text-xl font-serif font-bold uppercase tracking-wider">
-              {note?.id ? 'Edit Secret Record' : 'Inscribe New Note'}
+              {note?.id ? 'Edit Campaign Record' : 'Inscribe New Record'}
             </h2>
           </div>
           <button onClick={onClose} className="text-slate-500 hover:text-amber-500 transition-colors">
@@ -41,7 +42,7 @@ const DMNoteEditor: React.FC<DMNoteEditorProps> = ({ note, onSave, onClose }) =>
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="p-6 space-y-6 max-h-[80vh] overflow-y-auto custom-scrollbar">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1">
               <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Title of Entry</label>
@@ -67,6 +68,24 @@ const DMNoteEditor: React.FC<DMNoteEditorProps> = ({ note, onSave, onClose }) =>
                 <option value="Secret">Forbidden Secret</option>
               </select>
             </div>
+          </div>
+
+          <div className="space-y-1">
+            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 flex items-center gap-2">
+              <LinkIcon size={12} /> Illustration URL
+            </label>
+            <input
+              type="text"
+              value={formData.image_url}
+              onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+              placeholder="Paste a link to an image to enhance this record..."
+              className="w-full bg-slate-950 border border-slate-700 text-slate-200 rounded-lg p-3 text-sm focus:border-amber-500 focus:outline-none transition-all"
+            />
+            {formData.image_url && (
+              <div className="mt-3 h-40 rounded-xl border border-slate-800 overflow-hidden bg-slate-950">
+                <img src={formData.image_url} alt="Preview" className="h-full w-full object-cover opacity-70" />
+              </div>
+            )}
           </div>
 
           <div className="space-y-1">
@@ -106,7 +125,7 @@ const DMNoteEditor: React.FC<DMNoteEditorProps> = ({ note, onSave, onClose }) =>
             className="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-4 rounded-lg flex items-center justify-center gap-2 transition-all shadow-[0_0_20px_rgba(217,119,6,0.3)]"
           >
             <Save size={20} />
-            {loading ? 'Committing to Archive...' : 'Seal Record'}
+            {loading ? 'Committing...' : 'Seal Record'}
           </button>
         </form>
       </div>

@@ -1,6 +1,7 @@
+
 import React, { useState } from 'react';
 import { LoreEntry } from '../types';
-import { X, Save, BookOpen, Eye, EyeOff } from 'lucide-react';
+import { X, Save, BookOpen, Eye, EyeOff, Link as LinkIcon, Image as ImageIcon } from 'lucide-react';
 import clsx from 'clsx';
 
 interface LoreEditorProps {
@@ -16,7 +17,8 @@ const LoreEditor: React.FC<LoreEditorProps> = ({ entry, onSave, onClose }) => {
     era: '',
     year: 1490,
     category: 'History',
-    is_public: false
+    is_public: false,
+    image_url: ''
   });
   const [loading, setLoading] = useState(false);
 
@@ -42,7 +44,7 @@ const LoreEditor: React.FC<LoreEditorProps> = ({ entry, onSave, onClose }) => {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto custom-scrollbar">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Entry Title</label>
@@ -65,6 +67,24 @@ const LoreEditor: React.FC<LoreEditorProps> = ({ entry, onSave, onClose }) => {
                 required
               />
             </div>
+          </div>
+
+          <div className="space-y-1">
+            <label className="block text-xs font-bold text-slate-500 uppercase mb-1 flex items-center gap-2">
+              <LinkIcon size={12} /> Chronicle Illustration URL
+            </label>
+            <input
+              type="text"
+              value={formData.image_url}
+              onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+              placeholder="Enter image link to enhance the scroll..."
+              className="w-full bg-slate-950 border border-slate-700 text-slate-200 rounded p-2 focus:border-amber-500 focus:outline-none"
+            />
+            {formData.image_url && (
+              <div className="mt-2 h-32 rounded-lg border border-slate-800 overflow-hidden bg-slate-950 flex items-center justify-center">
+                <img src={formData.image_url} alt="Preview" className="h-full w-full object-cover" />
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -110,7 +130,7 @@ const LoreEditor: React.FC<LoreEditorProps> = ({ entry, onSave, onClose }) => {
               {formData.is_public ? <Eye className="text-amber-500" size={20} /> : <EyeOff className="text-slate-600" size={20} />}
               <div>
                 <p className="text-xs font-bold text-amber-100 uppercase tracking-widest leading-none mb-1">Public Reveal</p>
-                <p className="text-[10px] text-slate-500 uppercase leading-none">{formData.is_public ? 'Players can read this chronicle' : 'Hidden in the DM archives'}</p>
+                <p className="text-[10px] text-slate-500 uppercase leading-none">{formData.is_public ? 'Players can read' : 'Hidden archives'}</p>
               </div>
             </div>
             <button
@@ -131,7 +151,7 @@ const LoreEditor: React.FC<LoreEditorProps> = ({ entry, onSave, onClose }) => {
             className="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition-all mt-2"
           >
             <Save size={20} />
-            {loading ? 'Committing to Records...' : 'Save Chronicle'}
+            {loading ? 'Committing...' : 'Save Chronicle'}
           </button>
         </form>
       </div>

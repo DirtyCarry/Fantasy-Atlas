@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { AppSettings } from '../types';
 import { Save, FileDown, Upload, RefreshCw, AlertCircle, Database, Map as MapIcon, Hammer, FileText } from 'lucide-react';
@@ -12,11 +13,11 @@ interface SettingsViewProps {
 }
 
 const TEMPLATES = {
-  locations: "name,description,x,y,taverns,shops,npcs,is_public",
-  lore: "title,content,era,year,category,is_public",
+  locations: "name,description,x,y,taverns,shops,npcs,is_public,image_url",
+  lore: "title,content,era,year,category,is_public,image_url",
   monsters: "name,slug,size,type,challenge_rating,armor_class,hit_points,alignment,strength,dexterity,constitution,intelligence,wisdom,charisma,speed_walk,speed_fly,senses,languages,is_public",
   rules: "name,category,description,details,is_public",
-  notes: "title,content,category,is_public"
+  notes: "title,content,category,is_public,image_url"
 };
 
 const SettingsView: React.FC<SettingsViewProps> = ({ worldId, settings, onSave, onRefresh }) => {
@@ -68,7 +69,8 @@ const SettingsView: React.FC<SettingsViewProps> = ({ worldId, settings, onSave, 
             taverns: d.taverns ? d.taverns.split(';').map((s: string) => s.trim()) : [],
             shops: d.shops ? d.shops.split(';').map((s: string) => s.trim()) : [],
             npcs: d.npcs ? d.npcs.split(';').map((s: string) => s.trim()) : [],
-            is_public: d.is_public === 'true'
+            is_public: d.is_public === 'true',
+            image_url: d.image_url || ''
           }));
           ({ error } = await supabase.from('locations').insert(formatted));
         } else if (type === 'lore') {
@@ -79,7 +81,8 @@ const SettingsView: React.FC<SettingsViewProps> = ({ worldId, settings, onSave, 
             era: d.era,
             year: parseInt(d.year) || 1490,
             category: d.category,
-            is_public: d.is_public === 'true'
+            is_public: d.is_public === 'true',
+            image_url: d.image_url || ''
           }));
           ({ error } = await supabase.from('lore_entries').insert(formatted));
         } else if (type === 'rules') {
@@ -122,7 +125,8 @@ const SettingsView: React.FC<SettingsViewProps> = ({ worldId, settings, onSave, 
             title: d.title,
             content: d.content,
             category: d.category,
-            is_public: d.is_public === 'true'
+            is_public: d.is_public === 'true',
+            image_url: d.image_url || ''
           }));
           ({ error } = await supabase.from('dm_notes').insert(formatted));
         }
@@ -245,7 +249,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ worldId, settings, onSave, 
             <ImportCard type="rules" title="Rules" />
             <ImportCard type="monsters" title="Monsters" />
             <div className="md:col-span-2">
-              <ImportCard type="notes" title="DM Notes" />
+              <ImportCard type="notes" title="Campaign Notes" />
             </div>
           </div>
 

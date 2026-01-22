@@ -1,6 +1,7 @@
+
 import React, { useState, useMemo } from 'react';
 import { DMNote } from '../types';
-import { Search, BookMarked, Edit3, Trash2, X, EyeOff, Eye, StickyNote, User, Zap, Sparkles, ShieldQuestion } from 'lucide-react';
+import { Search, BookMarked, Edit3, Trash2, X, EyeOff, Eye, StickyNote, User, Zap, Sparkles, ShieldQuestion, Image as ImageIcon } from 'lucide-react';
 import clsx from 'clsx';
 
 interface DMNotesViewProps {
@@ -41,9 +42,9 @@ const DMNotesView: React.FC<DMNotesViewProps> = ({ notes, isEditable, onEdit, on
         <div className="p-6 border-b border-amber-900/30 bg-slate-950/50">
           <div className="flex items-center gap-3 text-amber-500 mb-1">
             <BookMarked size={20} />
-            <h2 className="text-xl font-bold uppercase tracking-tighter">Campaign Notes</h2>
+            <h2 className="text-xl font-bold uppercase tracking-tighter">Campaign Records</h2>
           </div>
-          <span className="text-[8px] font-sans uppercase tracking-widest text-amber-600/50">Private Chronicles & Plotlines</span>
+          <span className="text-[8px] font-sans uppercase tracking-widest text-amber-600/50">Shared Lore & Hidden Chronicles</span>
         </div>
 
         <div className="p-4 border-b border-amber-900/10">
@@ -67,7 +68,7 @@ const DMNotesView: React.FC<DMNotesViewProps> = ({ notes, isEditable, onEdit, on
               !selectedCategory ? "bg-amber-900/20 text-amber-400" : "text-slate-500 hover:bg-slate-800"
             )}
           >
-            All Archives
+            Full Archive
           </button>
           {Object.keys(categoryIcons).map(cat => (
             <button
@@ -99,25 +100,42 @@ const DMNotesView: React.FC<DMNotesViewProps> = ({ notes, isEditable, onEdit, on
             <div 
               key={note.id} 
               onClick={() => setExpandedNote(note)}
-              className="group relative bg-slate-900/80 backdrop-blur-sm border border-amber-900/20 rounded-xl p-6 hover:border-amber-500/50 transition-all cursor-pointer h-64 flex flex-col shadow-xl"
+              className="group relative bg-slate-900/80 backdrop-blur-sm border border-amber-900/20 rounded-xl overflow-hidden hover:border-amber-500/50 transition-all cursor-pointer h-[340px] md:h-[380px] flex flex-col shadow-xl"
             >
-              <div className="flex justify-between items-start mb-4">
-                <div className="flex items-center gap-2">
-                  <span className="text-amber-600/60">{categoryIcons[note.category]}</span>
-                  <span className="text-[10px] uppercase font-bold tracking-widest text-amber-600/80">{note.category}</span>
+              {/* Note Card Image */}
+              <div className="h-32 md:h-40 relative bg-slate-950 overflow-hidden">
+                {note.image_url ? (
+                  <img src={note.image_url} alt={note.title} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-all duration-700" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-slate-800">
+                    <ImageIcon size={32} className="opacity-10" />
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent" />
+              </div>
+
+              <div className="p-6 flex-1 flex flex-col">
+                <div className="flex justify-between items-start mb-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-amber-600/60">{categoryIcons[note.category]}</span>
+                    <span className="text-[10px] uppercase font-bold tracking-widest text-amber-600/80">{note.category}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {!note.is_public && isEditable && <EyeOff size={14} className="text-slate-600" title="DM Only" />}
+                    {isEditable && (
+                      <div className="flex gap-2" onClick={e => e.stopPropagation()}>
+                        <button onClick={() => onEdit(note)} className="text-slate-600 hover:text-amber-400"><Edit3 size={14} /></button>
+                        <button onClick={() => onDelete(note.id)} className="text-slate-600 hover:text-red-500"><Trash2 size={14} /></button>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  {!note.is_public ? <EyeOff size={14} className="text-slate-600" title="DM Only" /> : <Eye size={14} className="text-amber-500/50" title="Publicly Revealed" />}
-                  {isEditable && (
-                    <div className="flex gap-2" onClick={e => e.stopPropagation()}>
-                      <button onClick={() => onEdit(note)} className="text-slate-600 hover:text-amber-400"><Edit3 size={14} /></button>
-                      <button onClick={() => onDelete(note.id)} className="text-slate-600 hover:text-red-500"><Trash2 size={14} /></button>
-                    </div>
-                  )}
+                <h3 className="text-xl font-bold text-amber-100 mb-3 group-hover:text-amber-400 transition-colors uppercase tracking-tight line-clamp-2">{note.title}</h3>
+                <p className="text-slate-400 text-xs md:text-sm leading-relaxed line-clamp-3 font-sans italic">{note.content}</p>
+                <div className="mt-auto pt-4 flex justify-end">
+                   <span className="text-[9px] uppercase tracking-[0.2em] text-amber-900 font-bold group-hover:text-amber-600 transition-colors">Examine Record</span>
                 </div>
               </div>
-              <h3 className="text-xl font-bold text-amber-100 mb-3 group-hover:text-amber-400 transition-colors uppercase tracking-tight line-clamp-2">{note.title}</h3>
-              <p className="text-slate-400 text-xs md:text-sm leading-relaxed line-clamp-4 font-sans italic">{note.content}</p>
             </div>
           ))}
         </div>
@@ -126,7 +144,15 @@ const DMNotesView: React.FC<DMNotesViewProps> = ({ notes, isEditable, onEdit, on
       {expandedNote && (
         <div className="fixed inset-0 z-[5000] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/95 backdrop-blur-xl" onClick={() => setExpandedNote(null)} />
-          <div className="relative bg-slate-900 border border-amber-900/50 rounded-2xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl animate-in zoom-in-95 duration-300">
+          <div className="relative bg-slate-900 border border-amber-900/50 rounded-2xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl animate-in zoom-in-95 duration-300 overflow-hidden">
+            {/* Expanded Note Image */}
+            {expandedNote.image_url && (
+              <div className="h-56 md:h-72 w-full overflow-hidden shrink-0 relative">
+                <img src={expandedNote.image_url} alt={expandedNote.title} className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent" />
+              </div>
+            )}
+
             <div className="p-6 md:p-8 bg-slate-950 border-b border-amber-900/20 flex justify-between items-start shrink-0">
               <div>
                 <div className="flex items-center gap-2 text-amber-600 mb-1">

@@ -1,6 +1,7 @@
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { LoreEntry } from '../types';
-import { Search, Scroll, Clock, Edit3, Trash2, X, History, Compass, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { Search, Scroll, Clock, Edit3, Trash2, X, History, Compass, PanelLeftClose, PanelLeftOpen, Image as ImageIcon } from 'lucide-react';
 import clsx from 'clsx';
 
 interface LoreViewProps {
@@ -67,6 +68,7 @@ const LoreView: React.FC<LoreViewProps> = ({ entries, isEditable, onEdit, onAdd,
         "h-48 md:h-full",
         isCollapsed ? "w-14" : "w-full md:w-72"
       )}>
+        {/* Sidebar Header */}
         <div className={clsx(
           "border-b border-amber-900/30 bg-slate-950/50 flex items-center shrink-0",
           isCollapsed ? "justify-center h-[50px] md:h-[60px]" : "justify-between p-4 md:p-6"
@@ -206,20 +208,34 @@ const LoreView: React.FC<LoreViewProps> = ({ entries, isEditable, onEdit, onAdd,
           ) : (
             <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-4 md:gap-8 max-w-7xl mx-auto">
               {filteredEntries.map(entry => (
-                <div key={entry.id} onClick={() => setExpandedEntry(entry)} className="group relative bg-slate-900/60 backdrop-blur-sm border border-amber-900/20 rounded-lg p-4 md:p-6 hover:border-amber-500/40 transition-all flex flex-col h-[280px] md:h-[320px] cursor-pointer">
-                  <div className="flex justify-between items-start mb-2 md:mb-4">
-                    <span className="text-[9px] md:text-[10px] uppercase tracking-widest font-bold text-amber-600/80">DR {entry.year}</span>
-                    {isEditable && (
-                      <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-                        <button onClick={() => onEdit(entry)} className="text-slate-600 hover:text-amber-500"><Edit3 size={12} /></button>
-                        <button onClick={() => onDelete(entry.id)} className="text-slate-600 hover:text-red-500"><Trash2 size={12} /></button>
+                <div key={entry.id} onClick={() => setExpandedEntry(entry)} className="group relative bg-slate-900/60 backdrop-blur-sm border border-amber-900/20 rounded-lg overflow-hidden hover:border-amber-500/40 transition-all flex flex-col h-[320px] md:h-[380px] cursor-pointer shadow-xl">
+                  {/* Card Image */}
+                  <div className="h-32 md:h-40 relative overflow-hidden bg-slate-950">
+                    {entry.image_url ? (
+                      <img src={entry.image_url} alt={entry.title} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-all duration-700" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-slate-800">
+                        <ImageIcon size={32} className="opacity-10" />
                       </div>
                     )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent" />
                   </div>
-                  <h3 className="text-lg md:text-xl font-bold text-amber-100/90 mb-2 md:mb-3 line-clamp-2 leading-tight uppercase tracking-tight">{entry.title}</h3>
-                  <p className="text-slate-400 text-xs md:text-sm leading-relaxed mb-4 line-clamp-4 md:line-clamp-5 flex-1 font-sans">{entry.content}</p>
-                  <div className="flex justify-end pt-2 border-t border-slate-800/50">
-                    <span className="text-amber-600/40 text-[8px] uppercase tracking-widest font-bold group-hover:text-amber-500 transition-all">Examine Scroll</span>
+
+                  <div className="p-4 md:p-6 flex-1 flex flex-col">
+                    <div className="flex justify-between items-start mb-2">
+                      <span className="text-[9px] md:text-[10px] uppercase tracking-widest font-bold text-amber-600/80">DR {entry.year}</span>
+                      {isEditable && (
+                        <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                          <button onClick={() => onEdit(entry)} className="text-slate-600 hover:text-amber-500"><Edit3 size={12} /></button>
+                          <button onClick={() => onDelete(entry.id)} className="text-slate-600 hover:text-red-500"><Trash2 size={12} /></button>
+                        </div>
+                      )}
+                    </div>
+                    <h3 className="text-lg md:text-xl font-bold text-amber-100/90 mb-2 md:mb-3 line-clamp-2 leading-tight uppercase tracking-tight group-hover:text-amber-400 transition-colors">{entry.title}</h3>
+                    <p className="text-slate-400 text-xs md:text-sm leading-relaxed mb-4 line-clamp-3 md:line-clamp-4 flex-1 font-sans">{entry.content}</p>
+                    <div className="flex justify-end pt-2 border-t border-slate-800/50">
+                      <span className="text-amber-600/40 text-[8px] uppercase tracking-widest font-bold group-hover:text-amber-500 transition-all">Examine Scroll</span>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -232,8 +248,19 @@ const LoreView: React.FC<LoreViewProps> = ({ entries, isEditable, onEdit, onAdd,
         <div className="fixed inset-0 z-[4000] flex items-center justify-center p-2 md:p-12 animate-in fade-in duration-300">
           <div className="absolute inset-0 bg-black/95 backdrop-blur-xl" onClick={() => setExpandedEntry(null)} />
           <div className="relative bg-slate-900 border border-amber-900/50 rounded-xl md:rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-500">
+            {/* Modal Image Header */}
+            {expandedEntry.image_url && (
+              <div className="h-64 md:h-80 w-full overflow-hidden shrink-0 relative">
+                <img src={expandedEntry.image_url} alt={expandedEntry.title} className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent" />
+              </div>
+            )}
+
             <div className="bg-slate-950 p-4 md:p-8 border-b border-amber-900/30 flex justify-between items-center shrink-0">
-              <h2 className="text-2xl md:text-5xl font-bold text-amber-100 uppercase tracking-tighter truncate max-w-[80%]">{expandedEntry.title}</h2>
+              <div>
+                <span className="text-[10px] md:text-xs uppercase font-bold text-amber-600 mb-1 block">Chronicle of Era {expandedEntry.era} • DR {expandedEntry.year}</span>
+                <h2 className="text-2xl md:text-5xl font-bold text-amber-100 uppercase tracking-tighter truncate max-w-[80%] leading-none">{expandedEntry.title}</h2>
+              </div>
               <button onClick={() => setExpandedEntry(null)} className="text-slate-600 hover:text-amber-500 p-2"><X size={32} /></button>
             </div>
             <div className="flex-1 overflow-y-auto p-6 md:p-16 custom-scrollbar bg-[url('https://www.transparenttextures.com/patterns/natural-paper.png')] bg-fixed">

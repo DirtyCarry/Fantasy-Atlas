@@ -21,6 +21,7 @@ export interface LocationData {
   npcs: string[];
   size?: number;
   is_public?: boolean;
+  image_url?: string;
 }
 
 export interface LoreEntry {
@@ -33,6 +34,7 @@ export interface LoreEntry {
   category: string;
   is_public?: boolean;
   created_at?: string;
+  image_url?: string;
 }
 
 export interface DMNote {
@@ -43,6 +45,7 @@ export interface DMNote {
   category: 'NPC' | 'Event' | 'Character' | 'Plot' | 'Secret';
   is_public?: boolean;
   created_at?: string;
+  image_url?: string;
 }
 
 export type ViewMode = 'map' | 'lore' | 'rules' | 'monsters' | 'settings' | 'sanctum' | 'notes';

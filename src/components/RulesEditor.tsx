@@ -1,6 +1,7 @@
+
 import React, { useState } from 'react';
 import { RuleEntry } from '../types';
-import { X, Save, Scale, Plus, Trash2, Eye, EyeOff } from 'lucide-react';
+import { X, Save, Scale, Eye, EyeOff } from 'lucide-react';
 import clsx from 'clsx';
 
 interface RulesEditorProps {
@@ -24,20 +25,6 @@ const RulesEditor: React.FC<RulesEditorProps> = ({ rule, onSave, onClose }) => {
     setLoading(true);
     await onSave(formData);
     setLoading(false);
-  };
-
-  const handleDetailChange = (index: number, value: string) => {
-    const newDetails = [...(formData.details || [])];
-    newDetails[index] = value;
-    setFormData({ ...formData, details: newDetails });
-  };
-
-  const addDetail = () => {
-    setFormData({ ...formData, details: [...(formData.details || []), ''] });
-  };
-
-  const removeDetail = (index: number) => {
-    setFormData({ ...formData, details: (formData.details || []).filter((_, i) => i !== index) });
   };
 
   return (
@@ -83,37 +70,14 @@ const RulesEditor: React.FC<RulesEditorProps> = ({ rule, onSave, onClose }) => {
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Short Description</label>
+            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Full Statute Description</label>
             <textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              rows={2}
-              className="w-full bg-slate-950 border border-slate-700 text-slate-200 rounded p-2 text-sm focus:border-amber-500 focus:outline-none"
+              rows={12}
+              className="w-full bg-slate-950 border border-slate-700 text-slate-200 rounded p-4 text-sm focus:border-amber-500 focus:outline-none font-serif italic"
               required
             />
-          </div>
-
-          <div>
-            <div className="flex justify-between items-center mb-2">
-              <label className="text-xs font-bold text-slate-500 uppercase">Detailed Mechanics</label>
-              <button type="button" onClick={addDetail} className="text-[10px] text-amber-500 hover:text-amber-400 font-bold uppercase flex items-center gap-1">
-                <Plus size={12} /> Add Point
-              </button>
-            </div>
-            <div className="space-y-2">
-              {(formData.details || []).map((detail, idx) => (
-                <div key={idx} className="flex gap-2">
-                  <input
-                    type="text"
-                    value={detail}
-                    onChange={(e) => handleDetailChange(idx, e.target.value)}
-                    className="flex-1 bg-slate-950 border border-slate-700 text-slate-200 rounded p-2 text-xs focus:border-amber-500 focus:outline-none"
-                    placeholder="Specific rule detail..."
-                  />
-                  <button type="button" onClick={() => removeDetail(idx)} className="text-red-500 p-2"><Trash2 size={16} /></button>
-                </div>
-              ))}
-            </div>
           </div>
 
           <div className="flex items-center justify-between p-4 bg-slate-950/50 rounded-lg border border-amber-900/10">

@@ -161,23 +161,15 @@ const RulesView: React.FC<RulesViewProps> = ({ rules, isEditable, onEdit, onAdd,
             <div className="flex-1 overflow-y-auto p-8 md:p-16 custom-scrollbar bg-slate-950 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')] bg-fixed relative">
               <div className="absolute inset-0 bg-gradient-to-b from-amber-900/5 via-transparent to-transparent pointer-events-none" />
               <div className="max-w-prose mx-auto relative z-10">
-                <p className="text-slate-200 text-lg md:text-2xl leading-relaxed font-serif whitespace-pre-wrap selection:bg-amber-900/40 italic">
-                  {selectedRule.description.trim()}
-                </p>
-                {selectedRule.details && selectedRule.details.length > 0 && (
-                  <div className="mt-10 space-y-6 pt-10 border-t border-amber-900/10">
-                    <ul className="space-y-4">
-                      {selectedRule.details.map((detail, idx) => (
-                        <li key={idx} className="flex gap-4 items-start group">
-                          <div className="mt-2.5 w-1.5 h-1.5 rounded-full bg-amber-600 shadow-[0_0_8px_rgba(217,119,6,0.6)] shrink-0" />
-                          <p className="text-slate-300 leading-relaxed font-sans text-sm md:text-base">
-                            {detail.trim()}
-                          </p>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+                <div className="relative">
+                  {/* Decorative quotes */}
+                  <span className="absolute -left-8 top-0 text-amber-900/20 font-serif text-8xl leading-none">"</span>
+                  <p className="text-slate-200 text-lg md:text-2xl leading-relaxed font-serif whitespace-pre-wrap selection:bg-amber-900/40 italic relative z-10">
+                    {selectedRule.description.trim()}
+                    {selectedRule.details && selectedRule.details.length > 0 && `\n\n${selectedRule.details.join('\n\n')}`}
+                  </p>
+                  <span className="absolute -right-8 bottom-0 text-amber-900/20 font-serif text-8xl leading-none rotate-180">"</span>
+                </div>
               </div>
             </div>
           </div>

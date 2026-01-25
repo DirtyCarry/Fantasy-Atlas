@@ -39,17 +39,6 @@ const RulesView: React.FC<RulesViewProps> = ({ rules, isEditable, onEdit, onAdd,
 
   const categories = Array.from(new Set(rules.map(r => r.category))) as string[];
 
-  // Helper to ensure quotes are balanced and cleaned
-  const formatFlavorText = (text: string) => {
-    if (!text) return "";
-    let cleaned = text.trim();
-    // Remove wrapping quotes if they already exist, we will add our own consistently
-    if (cleaned.startsWith('"') && cleaned.endsWith('"')) {
-      cleaned = cleaned.substring(1, cleaned.length - 1);
-    }
-    return `"${cleaned}"`;
-  };
-
   return (
     <div className="h-full w-full bg-slate-950 flex flex-col md:flex-row overflow-hidden font-sans">
       <aside className={clsx(
@@ -70,7 +59,6 @@ const RulesView: React.FC<RulesViewProps> = ({ rules, isEditable, onEdit, onAdd,
               <span className="text-[8px] font-sans uppercase tracking-[0.2em] text-amber-600/50 leading-none mt-1">High Statutes of the Coast</span>
             </div>
           )}
-          
           <button 
             onClick={() => setIsCollapsed(!isCollapsed)}
             className="text-slate-500 hover:text-amber-500 transition-colors focus:outline-none p-1 rounded hover:bg-slate-800"
@@ -78,7 +66,6 @@ const RulesView: React.FC<RulesViewProps> = ({ rules, isEditable, onEdit, onAdd,
             {isCollapsed ? <PanelLeftOpen size={20} /> : <PanelLeftClose size={20} />}
           </button>
         </div>
-
         <div className={clsx(
           "flex-1 flex flex-col min-h-0 transition-opacity duration-200 overflow-hidden",
           isCollapsed ? "opacity-0 pointer-events-none invisible" : "opacity-100 visible delay-100"
@@ -95,7 +82,6 @@ const RulesView: React.FC<RulesViewProps> = ({ rules, isEditable, onEdit, onAdd,
               />
             </div>
           </div>
-
           <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1">
             <button 
               onClick={() => setSelectedCategory(null)}
@@ -120,7 +106,6 @@ const RulesView: React.FC<RulesViewProps> = ({ rules, isEditable, onEdit, onAdd,
               </button>
             ))}
           </div>
-
           {isEditable && (
             <div className="p-3 bg-slate-950/50 border-t border-amber-900/20 shrink-0 space-y-2">
               <button onClick={() => setShowImporter(true)} className="w-full bg-slate-800 text-amber-500 border border-amber-900/30 py-2 rounded text-[10px] font-bold uppercase tracking-widest hover:bg-slate-700 transition-all flex items-center justify-center gap-2">
@@ -163,41 +148,29 @@ const RulesView: React.FC<RulesViewProps> = ({ rules, isEditable, onEdit, onAdd,
       {selectedRule && (
         <div className="fixed inset-0 z-[5000] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/95 backdrop-blur-md" onClick={() => setSelectedRule(null)} />
-          <div className="relative bg-slate-900 border border-amber-900/50 rounded-2xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl animate-in zoom-in-95 duration-300 overflow-hidden">
+          <div className="relative bg-slate-900 border border-amber-900/50 rounded-2xl max-w-3xl w-full max-h-[85vh] flex flex-col shadow-2xl animate-in zoom-in-95 duration-300 overflow-hidden">
             <div className="p-6 md:p-8 border-b border-amber-900/20 flex justify-between items-center bg-slate-950/50 shrink-0">
               <div className="min-w-0 pr-4">
                 <span className="text-xs uppercase text-amber-600 font-bold tracking-[0.2em] mb-1 block">{selectedRule.category} Statute</span>
-                <h2 className="text-3xl md:text-4xl font-serif font-bold text-amber-100 uppercase tracking-tighter truncate leading-none">{selectedRule.name}</h2>
+                <h2 className="text-3xl md:text-5xl font-serif font-bold text-amber-100 uppercase tracking-tighter truncate leading-none">{selectedRule.name}</h2>
               </div>
               <button onClick={() => setSelectedRule(null)} className="text-slate-500 hover:text-amber-500 transition-colors p-2 shrink-0">
                 <X size={28} />
               </button>
             </div>
-            
-            <div className="flex-1 overflow-y-auto p-8 md:p-12 custom-scrollbar bg-slate-950 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')] bg-fixed relative">
+            <div className="flex-1 overflow-y-auto p-8 md:p-16 custom-scrollbar bg-slate-950 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')] bg-fixed relative">
               <div className="absolute inset-0 bg-gradient-to-b from-amber-900/5 via-transparent to-transparent pointer-events-none" />
-              
               <div className="max-w-prose mx-auto relative z-10">
-                <div className="mb-10 relative">
-                  <span className="absolute -left-6 top-0 text-amber-900/30 font-serif text-6xl leading-none">"</span>
-                  <p className="text-slate-200 text-lg md:text-xl leading-relaxed italic font-sans border-l-2 border-amber-900/30 pl-6 py-1">
-                    {selectedRule.description.trim().replace(/^"|"$/g, '')}
-                  </p>
-                  <span className="absolute -right-6 bottom-0 text-amber-900/30 font-serif text-6xl leading-none">"</span>
-                </div>
-                
+                <p className="text-slate-200 text-lg md:text-2xl leading-relaxed font-serif whitespace-pre-wrap selection:bg-amber-900/40 italic">
+                  {selectedRule.description.trim()}
+                </p>
                 {selectedRule.details && selectedRule.details.length > 0 && (
-                  <div className="space-y-8">
-                    <div className="flex items-center gap-4">
-                      <div className="h-px flex-1 bg-gradient-to-r from-transparent to-amber-900/20" />
-                      <span className="text-[10px] uppercase font-bold tracking-[0.3em] text-amber-600/60 shrink-0">Specific Mandates</span>
-                      <div className="h-px flex-1 bg-gradient-to-l from-transparent to-amber-900/20" />
-                    </div>
-                    <ul className="space-y-6">
+                  <div className="mt-10 space-y-6 pt-10 border-t border-amber-900/10">
+                    <ul className="space-y-4">
                       {selectedRule.details.map((detail, idx) => (
                         <li key={idx} className="flex gap-4 items-start group">
-                          <div className="mt-2.5 w-1.5 h-1.5 rounded-full bg-amber-600 shadow-[0_0_8px_rgba(217,119,6,0.6)] shrink-0 transition-transform group-hover:scale-125" />
-                          <p className="text-slate-300 leading-relaxed font-sans text-sm md:text-base selection:bg-amber-900/40">
+                          <div className="mt-2.5 w-1.5 h-1.5 rounded-full bg-amber-600 shadow-[0_0_8px_rgba(217,119,6,0.6)] shrink-0" />
+                          <p className="text-slate-300 leading-relaxed font-sans text-sm md:text-base">
                             {detail.trim()}
                           </p>
                         </li>
@@ -210,7 +183,6 @@ const RulesView: React.FC<RulesViewProps> = ({ rules, isEditable, onEdit, onAdd,
           </div>
         </div>
       )}
-
       {showImporter && (
         <RulesImporter 
           onClose={() => setShowImporter(false)} 

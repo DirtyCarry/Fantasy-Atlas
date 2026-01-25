@@ -17,27 +17,6 @@ const categoryMapping: Record<string, string> = {
   'using-ability-scores': 'Adventuring'
 };
 
-/**
- * Intelligent text cleaner for SRD data.
- * Reconstructs sentences that were split by 'soft' line breaks in the source API.
- */
-const cleanArcaneText = (text: string): string => {
-  if (!text) return "";
-  
-  // 1. Normalize line endings
-  let cleaned = text.replace(/\r\n/g, '\n');
-  
-  // 2. Identify 'soft' breaks: A newline that doesn't end a sentence and isn't a list item
-  // We look for a newline that is NOT preceded by punctuation (., !, ?, :, ;) 
-  // and NOT followed by a list marker (-, *, #, \d.)
-  cleaned = cleaned.replace(/([^.!?:;])\n(?![#\-\*\d\.])/g, '$1 ');
-  
-  // 3. Remove excessive whitespace
-  cleaned = cleaned.replace(/[ \t]+/g, ' ');
-  
-  return cleaned.trim();
-};
-
 const RulesImporter: React.FC<RulesImporterProps> = ({ onClose, onImport }) => {
   const [loading, setLoading] = useState(false);
   const [importing, setImporting] = useState(false);
@@ -80,39 +59,27 @@ const RulesImporter: React.FC<RulesImporterProps> = ({ onClose, onImport }) => {
 
     for (const section of sections) {
       if (selectedIds.has(section.slug)) {
-        const cleanedFullDesc = cleanArcaneText(section.desc || "");
-        
-        // Split by double newline for logical paragraphs
-        const paragraphs = cleanedFullDesc.split('\n\n')
-          .map(p => p.trim())
-          .filter(p => p.length > 0);
-        
         if (section.slug === 'conditions') {
-          // Conditions are usually lists of distinct entries.
-          // The API often uses H3 for these.
           const parts = section.desc.split('### ').slice(1);
           parts.forEach((p: string) => {
             const lines = p.split('\n');
             const name = lines[0].trim();
-            const content = cleanArcaneText(lines.slice(1).join('\n'));
-            const contentParas = content.split('\n\n').map(cp => cp.trim());
+            const content = lines.slice(1).join('\n').trim();
             
             rulesToImport.push({
               name,
               category: 'Conditions',
-              description: contentParas[0] || "No description provided.",
-              details: contentParas.slice(1).filter(l => l.length > 0),
+              description: content,
+              details: [], // No segmentation
               is_public: true
             });
           });
         } else {
-          // For general sections, the first paragraph is the summary.
-          // Everything else is a detailed point.
           rulesToImport.push({
             name: section.name,
             category: categoryMapping[section.slug] || 'Combat',
-            description: paragraphs[0] || "No summary available.",
-            details: paragraphs.slice(1).filter(p => p.length > 0),
+            description: section.desc || "",
+            details: [], // No segmentation
             is_public: true
           });
         }
@@ -127,7 +94,6 @@ const RulesImporter: React.FC<RulesImporterProps> = ({ onClose, onImport }) => {
     <div className="fixed inset-0 z-[6000] flex items-center justify-center p-4 backdrop-blur-xl">
       <div className="absolute inset-0 bg-black/80" onClick={onClose} />
       <div className="relative bg-slate-900 border border-amber-900/50 rounded-2xl w-full max-w-2xl overflow-hidden flex flex-col shadow-2xl animate-in zoom-in-95 duration-300">
-        
         <div className="p-6 border-b border-amber-900/30 bg-slate-950/50 flex justify-between items-center">
           <div className="flex items-center gap-3 text-amber-500">
             <Globe size={24} className="animate-pulse" />
@@ -138,7 +104,6 @@ const RulesImporter: React.FC<RulesImporterProps> = ({ onClose, onImport }) => {
           </div>
           <button onClick={onClose} className="text-slate-500 hover:text-amber-500 transition-colors"><X size={24} /></button>
         </div>
-
         <div className="p-4 bg-slate-950/30 border-b border-amber-900/10">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600" size={14} />
@@ -151,7 +116,6 @@ const RulesImporter: React.FC<RulesImporterProps> = ({ onClose, onImport }) => {
             />
           </div>
         </div>
-
         <div className="flex-1 overflow-y-auto p-4 custom-scrollbar bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')]">
           {loading ? (
             <div className="h-48 flex flex-col items-center justify-center text-amber-500 gap-4">
@@ -197,7 +161,6 @@ const RulesImporter: React.FC<RulesImporterProps> = ({ onClose, onImport }) => {
             </div>
           )}
         </div>
-
         <div className="p-6 bg-slate-950 border-t border-amber-900/30 flex items-center justify-between">
           <div className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">
             {selectedIds.size} Statutes Selected

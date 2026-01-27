@@ -66,7 +66,7 @@ const MonstersView: React.FC<MonstersViewProps> = ({ localMonsters, isEditable, 
   const StatBox = ({ label, value }: { label: string, value: number }) => {
     const mod = Math.floor((value - 10) / 2);
     return (
-      <div className="bg-slate-900/60 p-2 rounded text-center border border-amber-900/20">
+      <div className="bg-slate-900/60 p-2 rounded text-center border border-amber-900/20 shadow-inner">
         <div className="text-[10px] font-bold text-amber-600 uppercase mb-1">{label}</div>
         <div className="text-lg font-bold text-amber-100">{value}</div>
         <div className="text-[10px] text-slate-500">({mod >= 0 ? `+${mod}` : mod})</div>
@@ -185,7 +185,7 @@ const MonstersView: React.FC<MonstersViewProps> = ({ localMonsters, isEditable, 
                     key={m.id || m.slug}
                     onClick={() => setSelectedMonster(m)}
                     className={clsx(
-                      "bg-slate-900/80 backdrop-blur-sm border p-5 rounded-lg hover:border-amber-500/50 transition-all cursor-pointer flex flex-col group relative overflow-hidden h-[160px]",
+                      "bg-slate-900/80 backdrop-blur-sm border p-5 rounded-lg hover:border-amber-500/50 transition-all cursor-pointer flex flex-col group relative overflow-hidden h-[160px] shadow-lg",
                       m.is_homebrew ? "border-amber-600/40 shadow-[0_0_15px_rgba(217,119,6,0.1)]" : "border-amber-900/20"
                     )}
                   >

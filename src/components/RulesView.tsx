@@ -39,6 +39,19 @@ const RulesView: React.FC<RulesViewProps> = ({ rules, isEditable, onEdit, onAdd,
 
   const categories = Array.from(new Set(rules.map(r => r.category))) as string[];
 
+  // Robust text sanitizer to prevent awkward sentence breaks and remove segmentation artifacting
+  const sanitizeCodexText = (rule: RuleEntry) => {
+    // Combine description and any legacy details into one block
+    const combined = [rule.description, ...(rule.details || [])].join(' ');
+    
+    return combined
+      .replace(/•/g, '') // Remove literal bullet characters
+      .replace(/^\s*[-*]\s+/gm, '') // Remove markdown bullet markers
+      .replace(/[\r\n]+/g, ' ') // Flatten all newlines into spaces for a single block
+      .replace(/\s+/g, ' ') // Normalize spaces
+      .trim();
+  };
+
   return (
     <div className="h-full w-full bg-slate-950 flex flex-col md:flex-row overflow-hidden font-sans">
       <aside className={clsx(
@@ -162,11 +175,9 @@ const RulesView: React.FC<RulesViewProps> = ({ rules, isEditable, onEdit, onAdd,
               <div className="absolute inset-0 bg-gradient-to-b from-amber-900/5 via-transparent to-transparent pointer-events-none" />
               <div className="max-w-prose mx-auto relative z-10">
                 <div className="relative">
-                  {/* Decorative quotes */}
                   <span className="absolute -left-8 top-0 text-amber-900/20 font-serif text-8xl leading-none">"</span>
-                  <p className="text-slate-200 text-lg md:text-2xl leading-relaxed font-serif whitespace-pre-wrap selection:bg-amber-900/40 italic relative z-10">
-                    {selectedRule.description.trim()}
-                    {selectedRule.details && selectedRule.details.length > 0 && `\n\n${selectedRule.details.join('\n\n')}`}
+                  <p className="text-slate-200 text-lg md:text-2xl leading-relaxed font-serif selection:bg-amber-900/40 italic relative z-10">
+                    {sanitizeCodexText(selectedRule)}
                   </p>
                   <span className="absolute -right-8 bottom-0 text-amber-900/20 font-serif text-8xl leading-none rotate-180">"</span>
                 </div>
